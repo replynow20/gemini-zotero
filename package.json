@@ -1,24 +1,20 @@
 {
-  "name": "zotero-plugin-template",
+  "name": "gemini-zotero",
   "type": "module",
-  "version": "3.1.0",
-  "description": "Zotero Plugin Template",
+  "version": "0.3.0",
+  "description": "Zotero plugin for PDF analysis with Gemini AI",
   "config": {
-    "addonName": "Zotero Plugin Template",
-    "addonID": "addontemplate@euclpts.com",
-    "addonRef": "addontemplate",
-    "addonInstance": "AddonTemplate",
-    "prefsPrefix": "extensions.zotero.addontemplate"
+    "addonName": "Gemini Zotero",
+    "addonID": "gemini-zotero@aben.dev",
+    "addonRef": "geminizotero",
+    "addonInstance": "GeminiZotero",
+    "prefsPrefix": "extensions.zotero.geminizotero"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/windingwind/zotero-plugin-template.git"
+    "url": "git+https://github.com/aben/gemini-zotero.git"
   },
-  "author": "windingwind",
-  "bugs": {
-    "url": "https://github.com/windingwind/zotero-plugin-template/issues"
-  },
-  "homepage": "https://github.com/windingwind/zotero-plugin-template#readme",
+  "author": "Devin Fan",
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "start": "zotero-plugin serve",
@@ -26,20 +22,16 @@
     "lint:check": "prettier --check . && eslint .",
     "lint:fix": "prettier --write . && eslint . --fix",
     "release": "zotero-plugin release",
-    "test": "zotero-plugin test",
-    "update-deps": "npm update --save"
+    "test": "zotero-plugin test"
   },
   "dependencies": {
+    "marked": "^15.0.0",
     "zotero-plugin-toolkit": "^5.1.0-beta.13"
   },
   "devDependencies": {
-    "@types/chai": "^5.2.3",
-    "@types/mocha": "^10.0.10",
     "@types/node": "^24.10.0",
     "@zotero-plugin/eslint-config": "^0.6.7",
-    "chai": "^6.2.1",
     "eslint": "^9.39.2",
-    "mocha": "^11.7.5",
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
     "zotero-plugin-scaffold": "^0.8.2",

@@ -1,197 +1,224 @@
-import {
-  BasicExampleFactory,
-  HelperExampleFactory,
-  KeyExampleFactory,
-  PromptExampleFactory,
-  UIExampleFactory,
-} from "./modules/examples";
-import { getString, initLocale } from "./utils/locale";
-import { registerPrefsScripts } from "./modules/preferenceScript";
+import { initLocale } from "./utils/locale";
 import { createZToolkit } from "./utils/ztoolkit";
+// [DISABLED] Reader Panel - Replaced by Collection Toolbar button popup (collectionToolbar.ts)
+// The reader panel code is preserved in readerPanel.ts for potential future use.
+// import { registerReaderPanel } from "./modules/ui/readerPanel";
+import { registerSelectionHandler, unregisterSelectionHandler } from "./modules/ui/selectionPopup";
+import { registerCollectionToolbarButton } from "./modules/ui/collectionToolbar";
+import { registerBatchMenu } from "./modules/batch/batchProcessor";
+import { registerPrefObservers, unregisterPrefObservers } from "./utils/prefs";
+
+// Track windows that have had menus registered
+const menuRegisteredWindows = new WeakSet<_ZoteroTypes.MainWindow>();
 
 async function onStartup() {
-  await Promise.all([
-    Zotero.initializationPromise,
-    Zotero.unlockPromise,
-    Zotero.uiReadyPromise,
-  ]);
+    ztoolkit.log("[GeminiZotero] onStartup called");
 
-  initLocale();
+    ztoolkit.log("[GeminiZotero] Waiting for Zotero initialization...");
+    await Promise.all([
+        Zotero.initializationPromise,
+        Zotero.unlockPromise,
+        Zotero.uiReadyPromise,
+    ]);
+    ztoolkit.log("[GeminiZotero] Zotero initialized");
 
-  BasicExampleFactory.registerPrefs();
+    ztoolkit.log("[GeminiZotero] Initializing locale...");
+    initLocale();
+    ztoolkit.log("[GeminiZotero] Locale initialized");
 
-  BasicExampleFactory.registerNotifier();
+    // Register preference pane
+    ztoolkit.log("[GeminiZotero] Registering preference pane...");
+    try {
+        Zotero.PreferencePanes.register({
+            pluginID: addon.data.config.addonID,
+            src: rootURI + "content/preferences.xhtml",
+            label: "Gemini Zotero",
+            image: `chrome://${addon.data.config.addonRef}/content/icons/favicon-sele.svg`,
+        });
+        ztoolkit.log("[GeminiZotero] Preference pane registered successfully");
+    } catch (e) {
+        ztoolkit.log("[GeminiZotero] ERROR: Failed to register preference pane:", e);
+    }
 
-  KeyExampleFactory.registerShortcuts();
+    // [DISABLED] Reader Panel - Replaced by Collection Toolbar button popup
+    // The toolbar popup provides the same functionality with a better UX.
+    // This code is preserved for potential future features (e.g., in-reader sidebar).
+    // ztoolkit.log("[GeminiZotero] Registering reader panel...");
+    // try {
+    //     registerReaderPanel();
+    //     ztoolkit.log("[GeminiZotero] Reader panel registered successfully");
+    // } catch (e) {
+    //     ztoolkit.log("[GeminiZotero] ERROR: Failed to register reader panel:", e);
+    // }
 
-  await UIExampleFactory.registerExtraColumn();
+    // Register PDF selection popup handler
+    ztoolkit.log("[GeminiZotero] Registering selection handler...");
+    try {
+        registerSelectionHandler();
+        ztoolkit.log("[GeminiZotero] Selection handler registered successfully");
+    } catch (e) {
+        ztoolkit.log("[GeminiZotero] ERROR: Failed to register selection handler:", e);
+    }
 
-  await UIExampleFactory.registerExtraColumnWithCustomCell();
+    ztoolkit.log("[GeminiZotero] Processing main windows...");
+    const windows = Zotero.getMainWindows();
+    ztoolkit.log(`[GeminiZotero] Found ${windows.length} main window(s)`);
 
-  UIExampleFactory.registerItemPaneCustomInfoRow();
+    await Promise.all(
+        windows.map((win) => onMainWindowLoad(win)),
+    );
 
-  UIExampleFactory.registerItemPaneSection();
+    registerPrefObservers();
 
-  UIExampleFactory.registerReaderItemPaneSection();
-
-  await Promise.all(
-    Zotero.getMainWindows().map((win) => onMainWindowLoad(win)),
-  );
-
-  // Mark initialized as true to confirm plugin loading status
-  // outside of the plugin (e.g. scaffold testing process)
-  addon.data.initialized = true;
+    addon.data.initialized = true;
+    ztoolkit.log("[GeminiZotero] ====== Plugin fully initialized ======");
 }
 
 async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
-  // Create ztoolkit for every window
-  addon.data.ztoolkit = createZToolkit();
+    ztoolkit.log("[GeminiZotero] onMainWindowLoad called");
 
-  win.MozXULElement.insertFTLIfNeeded(
-    `${addon.data.config.addonRef}-mainWindow.ftl`,
-  );
+    addon.data.ztoolkit = createZToolkit();
+    ztoolkit.log("[GeminiZotero] ZToolkit created");
 
-  const popupWin = new ztoolkit.ProgressWindow(addon.data.config.addonName, {
-    closeOnClick: true,
-    closeTime: -1,
-  })
-    .createLine({
-      text: getString("startup-begin"),
-      type: "default",
-      progress: 0,
-    })
-    .show();
+    // Insert localization resources - use correct FTL file name
+    ztoolkit.log("[GeminiZotero] Loading FTL resources...");
+    try {
+        const ftlPath = `${addon.data.config.addonRef}-mainWindow.ftl`;
+        ztoolkit.log(`[GeminiZotero] FTL path: ${ftlPath}`);
+        win.MozXULElement.insertFTLIfNeeded(ftlPath);
+        ztoolkit.log("[GeminiZotero] FTL loaded successfully");
+    } catch (e) {
+        ztoolkit.log("[GeminiZotero] ERROR: Failed to load FTL:", e);
+    }
 
-  await Zotero.Promise.delay(1000);
-  popupWin.changeLine({
-    progress: 30,
-    text: `[30%] ${getString("startup-begin")}`,
-  });
+    // Register batch analysis menu per window
+    if (!menuRegisteredWindows.has(win)) {
+        ztoolkit.log("[GeminiZotero] Registering batch menu for window");
+        try {
+            await registerBatchMenu(win);
+            menuRegisteredWindows.add(win);
+            ztoolkit.log("[GeminiZotero] Batch menu registered successfully");
+        } catch (e) {
+            ztoolkit.log("[GeminiZotero] ERROR: Failed to register batch menu:", e);
+        }
 
-  UIExampleFactory.registerStyleSheet(win);
+        // Register collection toolbar button
+        ztoolkit.log("[GeminiZotero] Registering collection toolbar button");
+        try {
+            registerCollectionToolbarButton(win);
+            ztoolkit.log("[GeminiZotero] Collection toolbar button registered successfully");
+        } catch (e) {
+            ztoolkit.log("[GeminiZotero] ERROR: Failed to register collection toolbar button:", e);
+        }
+    } else {
+        ztoolkit.log("[GeminiZotero] Batch menu already registered for this window, skipping");
+    }
 
-  UIExampleFactory.registerRightClickMenuItem();
+    // Show startup notification in development mode
+    if (__env__ === "development") {
+        ztoolkit.log("[GeminiZotero] Development mode - showing notification");
+        new ztoolkit.ProgressWindow(addon.data.config.addonName, {
+            closeOnClick: true,
+            closeTime: 3000,
+        })
+            .createLine({
+                text: "Gemini Zotero loaded",
+                type: "default",
+            })
+            .show();
+    }
 
-  UIExampleFactory.registerRightClickMenuPopup(win);
-
-  UIExampleFactory.registerWindowMenuWithSeparator();
-
-  PromptExampleFactory.registerNormalCommandExample();
-
-  PromptExampleFactory.registerAnonymousCommandExample(win);
-
-  PromptExampleFactory.registerConditionalCommandExample();
-
-  await Zotero.Promise.delay(1000);
-
-  popupWin.changeLine({
-    progress: 100,
-    text: `[100%] ${getString("startup-finish")}`,
-  });
-  popupWin.startCloseTimer(5000);
-
-  addon.hooks.onDialogEvents("dialogExample");
+    ztoolkit.log("[GeminiZotero] onMainWindowLoad completed");
 }
 
-async function onMainWindowUnload(win: Window): Promise<void> {
-  ztoolkit.unregisterAll();
-  addon.data.dialog?.window?.close();
+async function onMainWindowUnload(_win: Window): Promise<void> {
+    ztoolkit.log("[GeminiZotero] onMainWindowUnload called");
+    ztoolkit.unregisterAll();
+    addon.data.dialog?.window?.close();
+    ztoolkit.log("[GeminiZotero] Window unload completed");
 }
 
 function onShutdown(): void {
-  ztoolkit.unregisterAll();
-  addon.data.dialog?.window?.close();
-  // Remove addon object
-  addon.data.alive = false;
-  // @ts-expect-error - Plugin instance is not typed
-  delete Zotero[addon.data.config.addonInstance];
+    ztoolkit.log("[GeminiZotero] onShutdown called");
+    addon.data.alive = false;
+    unregisterSelectionHandler();
+    unregisterPrefObservers();
+    ztoolkit.unregisterAll();
+    ztoolkit.log("[GeminiZotero] Shutdown completed");
 }
 
-/**
- * This function is just an example of dispatcher for Notify events.
- * Any operations should be placed in a function to keep this funcion clear.
- */
-async function onNotify(
-  event: string,
-  type: string,
-  ids: Array<string | number>,
-  extraData: { [key: string]: any },
-) {
-  // You can add your code to the corresponding notify type
-  ztoolkit.log("notify", event, type, ids, extraData);
-  if (
-    event == "select" &&
-    type == "tab" &&
-    extraData[ids[0]].type == "reader"
-  ) {
-    BasicExampleFactory.exampleNotifierCallback();
-  } else {
-    return;
-  }
-}
+function onPrefsEvent(type: string, data: { window: Window }) {
+    ztoolkit.log(`[GeminiZotero] onPrefsEvent: ${type}`);
+    if (type === "load") {
+        addon.resetGeminiClient();
+        ztoolkit.log("[GeminiZotero] Gemini client reset due to prefs load");
+    } else if (type === "restore-defaults") {
+        // Restore model parameters to default values
+        const prefs = Zotero.Prefs;
+        const prefix = addon.data.config.prefsPrefix;
 
-/**
- * This function is just an example of dispatcher for Preference UI events.
- * Any operations should be placed in a function to keep this funcion clear.
- * @param type event type
- * @param data event data
- */
-async function onPrefsEvent(type: string, data: { [key: string]: any }) {
-  switch (type) {
-    case "load":
-      registerPrefsScripts(data.window);
-      break;
-    default:
-      return;
-  }
-}
+        // Default values
+        const defaults = {
+            temperature: "1.0",
+            topP: "0.95",
+            topK: "40",
+            maxOutputTokens: "8192",
+        };
 
-function onShortcuts(type: string) {
-  switch (type) {
-    case "larger":
-      KeyExampleFactory.exampleShortcutLargerCallback();
-      break;
-    case "smaller":
-      KeyExampleFactory.exampleShortcutSmallerCallback();
-      break;
-    default:
-      break;
-  }
-}
+        // Reset preferences to their default values (use true to prevent doubled prefix)
+        prefs.set(`${prefix}.temperature`, defaults.temperature, true);
+        prefs.set(`${prefix}.topP`, defaults.topP, true);
+        prefs.set(`${prefix}.topK`, defaults.topK, true);
+        prefs.set(`${prefix}.maxOutputTokens`, defaults.maxOutputTokens, true);
 
-function onDialogEvents(type: string) {
-  switch (type) {
-    case "dialogExample":
-      HelperExampleFactory.dialogExample();
-      break;
-    case "clipboardExample":
-      HelperExampleFactory.clipboardExample();
-      break;
-    case "filePickerExample":
-      HelperExampleFactory.filePickerExample();
-      break;
-    case "progressWindowExample":
-      HelperExampleFactory.progressWindowExample();
-      break;
-    case "vtableExample":
-      HelperExampleFactory.vtableExample();
-      break;
-    default:
-      break;
-  }
-}
+        // Update the UI input elements to reflect the new values
+        const doc = data.window.document;
 
-// Add your hooks here. For element click, etc.
-// Keep in mind hooks only do dispatch. Don't add code that does real jobs in hooks.
-// Otherwise the code would be hard to read and maintain.
+        // Helper function to update an input element
+        const updateInputValue = (id: string, value: string) => {
+            const input = doc.getElementById(id) as HTMLInputElement;
+            ztoolkit.log(`[GeminiZotero] Updating input ${id}: element found = ${!!input}`);
+            if (input) {
+                // Set value property directly
+                input.value = value;
+                // Also set the attribute for XUL compatibility
+                input.setAttribute("value", value);
+                // Dispatch input event to trigger any preference bindings
+                // Use data.window.Event since global Event is not available in XUL context
+                const win = data.window as any;
+                if (win.Event) {
+                    input.dispatchEvent(new win.Event("input", { bubbles: true }));
+                    input.dispatchEvent(new win.Event("change", { bubbles: true }));
+                }
+            }
+        };
+
+        updateInputValue("zotero-prefpane-geminizotero-temperature", defaults.temperature);
+        updateInputValue("zotero-prefpane-geminizotero-topp", defaults.topP);
+        updateInputValue("zotero-prefpane-geminizotero-topk", defaults.topK);
+        updateInputValue("zotero-prefpane-geminizotero-maxtokens", defaults.maxOutputTokens);
+
+        // Show confirmation message
+        new ztoolkit.ProgressWindow(addon.data.config.addonName, {
+            closeOnClick: true,
+            closeTime: 3000,
+        })
+            .createLine({
+                text: "已恢复模型参数默认值",
+                type: "success",
+            })
+            .show();
+
+        // Reset Gemini client with new settings
+        addon.resetGeminiClient();
+        ztoolkit.log("[GeminiZotero] Model parameters restored to defaults");
+    }
+}
 
 export default {
-  onStartup,
-  onShutdown,
-  onMainWindowLoad,
-  onMainWindowUnload,
-  onNotify,
-  onPrefsEvent,
-  onShortcuts,
-  onDialogEvents,
+    onStartup,
+    onMainWindowLoad,
+    onMainWindowUnload,
+    onShutdown,
+    onPrefsEvent,
 };

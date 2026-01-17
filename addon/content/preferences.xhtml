@@ -1,33 +1,145 @@
 <linkset>
-  <html:link rel="localization" href="__addonRef__-preferences.ftl" />
+  <html:link rel="localization" href="geminizotero-addon.ftl" />
+  <html:link rel="localization" href="geminizotero-preferences.ftl" />
 </linkset>
-<groupbox
-  onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', { window })"
->
-  <label><html:h2 data-l10n-id="pref-title"></html:h2></label>
-  <checkbox
-    id="zotero-prefpane-__addonRef__-enable"
-    preference="enable"
-    data-l10n-id="pref-enable"
-  />
-  <hbox>
-    <html:label
-      for="zotero-prefpane-__addonRef__-input"
-      data-l10n-id="pref-input"
-    ></html:label>
-    <html:input
-      type="text"
-      id="zotero-prefpane-__addonRef__-input"
-      preference="input"
-    ></html:input>
+<preferences id="zotero-prefpane-geminizotero-preferences">
+  <preference id="extensions.zotero.geminizotero.apiKey" name="extensions.zotero.geminizotero.apiKey" type="string" />
+  <preference id="extensions.zotero.geminizotero.apiBaseUrl" name="extensions.zotero.geminizotero.apiBaseUrl"
+    type="string" />
+  <preference id="extensions.zotero.geminizotero.model" name="extensions.zotero.geminizotero.model" type="string" />
+  <preference id="extensions.zotero.geminizotero.autoSaveStructuredOutput"
+    name="extensions.zotero.geminizotero.autoSaveStructuredOutput" type="bool" default="true" />
+  <preference id="extensions.zotero.geminizotero.temperature" name="extensions.zotero.geminizotero.temperature"
+    type="string" />
+  <preference id="extensions.zotero.geminizotero.topP" name="extensions.zotero.geminizotero.topP" type="string" />
+  <preference id="extensions.zotero.geminizotero.topK" name="extensions.zotero.geminizotero.topK" type="string" />
+  <preference id="extensions.zotero.geminizotero.maxOutputTokens" name="extensions.zotero.geminizotero.maxOutputTokens"
+    type="string" />
+</preferences>
+<groupbox onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', { window })">
+  <label>
+    <html:h2 data-l10n-id="prefs-title">Gemini Zotero 设置</html:h2>
+  </label>
+
+  <!-- API Key -->
+  <hbox align="center">
+    <html:label for="zotero-prefpane-geminizotero-apikey" style="width: 140px" data-l10n-id="prefs-api-key">API Key
+    </html:label>
+    <html:input type="password" id="zotero-prefpane-geminizotero-apikey" preference="apiKey" style="flex: 1"
+      data-l10n-id="prefs-api-key-placeholder" placeholder="请输入 Gemini API Key">
+    </html:input>
   </hbox>
-  <hbox class="virtualized-table-container" flex="1" height="300px">
-    <html:div id="__addonRef__-table-container" />
+
+  <!-- API Base URL -->
+  <hbox align="center" style="margin-top: 10px">
+    <html:label for="zotero-prefpane-geminizotero-apiurl" style="width: 140px" data-l10n-id="prefs-api-url">API Base URL
+    </html:label>
+    <html:input type="text" id="zotero-prefpane-geminizotero-apiurl" preference="apiBaseUrl"
+      data-l10n-id="prefs-api-url-placeholder" placeholder="留空使用官方API，或输入代理地址如 https://proxy.com" style="width: 220px">
+    </html:input>
+    <html:span style="margin-left: 10px;">自定义API或 <html:a href="javascript:void(0)"
+        onclick="Zotero.launchURL('https://api.replynow.cn:6688')"
+        style="color: #1a73e8; text-decoration: none; cursor: pointer">购买</html:a>
+    </html:span>
   </hbox>
+
+  <!-- Model Selection -->
+  <hbox align="center" style="margin-top: 10px">
+    <html:label for="zotero-prefpane-geminizotero-model" style="width: 140px" data-l10n-id="prefs-model">默认模型
+    </html:label>
+    <menulist id="zotero-prefpane-geminizotero-model" preference="model">
+      <menupopup>
+        <menuitem label="Gemini 3 Flash Preview" value="gemini-3-flash-preview" />
+        <menuitem label="Gemini 3 Pro Preview" value="gemini-3-pro-preview" />
+      </menupopup>
+    </menulist>
+  </hbox>
+
+  <!-- Separator for Model Parameters -->
+  <label style="margin-top: 16px">
+    <html:h3 style="margin-bottom: 4px; font-size: 14px; color: #555" data-l10n-id="prefs-model-params">模型参数</html:h3>
+  </label>
+  <html:p style="margin: 0 0 8px 0; font-size: 12px; color: #888" data-l10n-id="prefs-model-params-desc">
+    调整生成参数以控制输出的随机性和多样性。Gemini 3 建议保持 temperature = 1.0
+  </html:p>
+
+  <!-- Temperature -->
+  <hbox align="center" style="margin-top: 6px">
+    <html:label for="zotero-prefpane-geminizotero-temperature" style="width: 140px" data-l10n-id="prefs-temperature">
+      Temperature</html:label>
+    <html:input type="number" min="0" max="2" step="0.1" id="zotero-prefpane-geminizotero-temperature"
+      preference="temperature" placeholder="1.0" style="width: 50px; text-align: center"></html:input>
+    <html:span style="margin-left: 8px; font-size: 11px; color: #888" data-l10n-id="prefs-temperature-desc">范围 0-2，控制随机性
+    </html:span>
+  </hbox>
+  <html:p style="margin: 4px 0 0 140px; font-size: 11px; color: #888" data-l10n-id="prefs-temperature-detail">
+    值越高，输出越随机和创造性；值越低，输出越确定和一致
+  </html:p>
+
+  <!-- Top P -->
+  <hbox align="center" style="margin-top: 10px">
+    <html:label for="zotero-prefpane-geminizotero-topp" style="width: 140px" data-l10n-id="prefs-top-p">Top P
+    </html:label>
+    <html:input type="number" min="0" max="1" step="0.05" id="zotero-prefpane-geminizotero-topp" preference="topP"
+      placeholder="0.95" style="width: 50px; text-align: center"></html:input>
+    <html:span style="margin-left: 8px; font-size: 11px; color: #888" data-l10n-id="prefs-top-p-desc">范围 0-1，核采样阈值
+    </html:span>
+  </hbox>
+  <html:p style="margin: 4px 0 0 140px; font-size: 11px; color: #888" data-l10n-id="prefs-top-p-detail">
+    从累积概率达到该值的候选词中采样，降低可减少随机性
+  </html:p>
+
+  <!-- Top K -->
+  <hbox align="center" style="margin-top: 10px">
+    <html:label for="zotero-prefpane-geminizotero-topk" style="width: 140px" data-l10n-id="prefs-top-k">Top K
+    </html:label>
+    <html:input type="number" min="1" id="zotero-prefpane-geminizotero-topk" preference="topK" placeholder="40"
+      style="width: 50px; text-align: center"></html:input>
+    <html:span style="margin-left: 8px; font-size: 11px; color: #888" data-l10n-id="prefs-top-k-desc">候选词数量限制
+    </html:span>
+  </hbox>
+  <html:p style="margin: 4px 0 0 140px; font-size: 11px; color: #888" data-l10n-id="prefs-top-k-detail">
+    每步只考虑概率最高的 K 个候选词，降低可使输出更聚焦
+  </html:p>
+
+  <!-- Max Output Tokens -->
+  <hbox align="center" style="margin-top: 10px">
+    <html:label for="zotero-prefpane-geminizotero-maxtokens" style="width: 140px" data-l10n-id="prefs-max-tokens">Max
+      Output Tokens</html:label>
+    <html:input type="number" min="1" id="zotero-prefpane-geminizotero-maxtokens" preference="maxOutputTokens"
+      placeholder="8192" style="width: 50px; text-align: center"></html:input>
+    <html:span style="margin-left: 8px; font-size: 11px; color: #888" data-l10n-id="prefs-max-tokens-desc">最大输出长度
+    </html:span>
+  </hbox>
+  <html:p style="margin: 4px 0 0 140px; font-size: 11px; color: #888" data-l10n-id="prefs-max-tokens-detail">
+    限制生成内容的最大长度，1 token ≈ 0.75 个英文单词
+  </html:p>
+
+  <!-- Restore Defaults Button for Model Parameters -->
+  <hbox style="margin-top: 12px">
+    <html:button id="zotero-prefpane-geminizotero-restore-defaults" style="padding: 6px 16px; cursor: pointer"
+      onclick="Zotero.__addonInstance__.hooks.onPrefsEvent('restore-defaults', { window })"
+      data-l10n-id="prefs-restore-defaults">
+      恢复默认
+    </html:button>
+  </hbox>
+
+  <!-- Auto-save Option -->
+  <checkbox id="zotero-prefpane-geminizotero-autosave" preference="autoSaveStructuredOutput" label="自动保存结构化输出为笔记"
+    data-l10n-id="prefs-auto-save" style="margin-top: 14px" />
+
+  <!-- About Section -->
+  <label style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #ddd">
+    <html:h3 style="margin-bottom: 8px; font-size: 14px; color: #555" data-l10n-id="prefs-about">关于</html:h3>
+  </label>
+  <html:div style="font-size: 12px; color: #666; line-height: 1.6">
+    <html:p style="margin: 0 0 6px 0">
+      <html:strong>Gemini Zotero</html:strong> v__buildVersion__ · Developed by Devin Fan
+    </html:p>
+    <html:p style="margin: 0">
+      <html:span data-l10n-id="prefs-about-url">插件地址： </html:span>
+      <html:a href="javascript:void(0)" onclick="Zotero.launchURL('https://ahuia.top:4430/s/7YBb8TKoaKmwJmJ')"
+        style="color: #1a73e8; text-decoration: none; cursor: pointer">下载插件</html:a>
+    </html:p>
+  </html:div>
 </groupbox>
-<vbox>
-  <html:label
-    data-l10n-id="pref-help"
-    data-l10n-args='{"time": "__buildTime__","name": "__addonName__","version":"__buildVersion__"}'
-  ></html:label>
-</vbox>

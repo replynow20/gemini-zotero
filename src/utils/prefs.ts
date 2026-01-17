@@ -1,36 +1,48 @@
 import { config } from "../../package.json";
 
-type PluginPrefsMap = _ZoteroTypes.Prefs["PluginPrefsMap"];
+const PREFS_TO_WATCH = new Set(["apiKey", "apiBaseUrl", "model"]);
 
-const PREFS_PREFIX = config.prefsPrefix;
+let prefBranch: any = null;
 
-/**
- * Get preference value.
- * Wrapper of `Zotero.Prefs.get`.
- * @param key
- */
-export function getPref<K extends keyof PluginPrefsMap>(key: K) {
-  return Zotero.Prefs.get(`${PREFS_PREFIX}.${key}`, true) as PluginPrefsMap[K];
+const prefObserver = {
+    observe(_subject: unknown, topic: string, data: string) {
+        if (topic !== "nsPref:changed" || typeof data !== "string") {
+            return;
+        }
+
+        if (!PREFS_TO_WATCH.has(data)) {
+            return;
+        }
+
+        ztoolkit.log(`[GeminiZotero] Pref changed: ${data}, resetting Gemini client`);
+        addon.resetGeminiClient();
+    },
+};
+
+export function registerPrefObservers() {
+    if (prefBranch) {
+        return;
+    }
+
+    try {
+        prefBranch = Services.prefs.getBranch(`${config.prefsPrefix}.`);
+        prefBranch.addObserver("", prefObserver);
+        ztoolkit.log("[GeminiZotero] Preference observers registered");
+    } catch (e) {
+        ztoolkit.log("[GeminiZotero] Failed to register preference observers", e);
+    }
 }
 
-/**
- * Set preference value.
- * Wrapper of `Zotero.Prefs.set`.
- * @param key
- * @param value
- */
-export function setPref<K extends keyof PluginPrefsMap>(
-  key: K,
-  value: PluginPrefsMap[K],
-) {
-  return Zotero.Prefs.set(`${PREFS_PREFIX}.${key}`, value, true);
-}
+export function unregisterPrefObservers() {
+    if (!prefBranch) {
+        return;
+    }
 
-/**
- * Clear preference value.
- * Wrapper of `Zotero.Prefs.clear`.
- * @param key
- */
-export function clearPref(key: string) {
-  return Zotero.Prefs.clear(`${PREFS_PREFIX}.${key}`, true);
+    try {
+        prefBranch.removeObserver("", prefObserver);
+        prefBranch = null;
+        ztoolkit.log("[GeminiZotero] Preference observers unregistered");
+    } catch (e) {
+        ztoolkit.log("[GeminiZotero] Failed to unregister preference observers", e);
+    }
 }
