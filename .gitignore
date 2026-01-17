@@ -10,3 +10,4 @@ Library/
 .idea/
 .npm/
 *.log
+tsconfig.tsbuildinfo
