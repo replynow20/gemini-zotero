@@ -19,6 +19,7 @@ import { syncTagsFromStructuredOutput } from "../storage/tagSync";
 import { closeProgressWindowAfter } from "../../utils/progressWindow";
 import { clearHistory, saveMessage } from "../storage/historyStorage";
 import { getPdfData } from "../../utils/pdfHelper";
+import { isWindowAlive } from "../../utils/window";
 
 
 // UI Components
@@ -34,6 +35,18 @@ const TOOLBAR_BUTTON_ID = "geminizotero-collection-toolbar-button";
 
 // Track the current popup window to prevent multiple instances
 let currentPopupWindow: Window | null = null;
+
+/**
+ * Close the plugin popup if it's open
+ * Called when main window is closing
+ */
+export function closePluginPopup() {
+    if (isWindowAlive(currentPopupWindow)) {
+        ztoolkit.log("[GeminiZotero] Closing popup due to main window unload");
+        currentPopupWindow!.close();
+        currentPopupWindow = null;
+    }
+}
 
 /**
  * Register the plugin button in the collection toolbar
@@ -89,11 +102,23 @@ export function registerCollectionToolbarButton(win: _ZoteroTypes.MainWindow) {
  * Show the plugin popup dialog (Main Controller)
  */
 async function showPluginPopup(win: _ZoteroTypes.MainWindow) {
-    // Check if a popup is already open
-    if (currentPopupWindow && !currentPopupWindow.closed) {
+    ztoolkit.log(`[GeminiZotero] showPluginPopup called, currentPopupWindow alive: ${isWindowAlive(currentPopupWindow)}`);
+
+    // Check if a popup is already open using the robust isWindowAlive check
+    // This checks: exists + not dead wrapper + not closed
+    if (isWindowAlive(currentPopupWindow)) {
         // Focus the existing window instead of opening a new one
-        currentPopupWindow.focus();
-        return;
+        ztoolkit.log("[GeminiZotero] Window already open and alive, focusing existing window");
+        try {
+            currentPopupWindow!.focus();
+            return;
+        } catch (e) {
+            ztoolkit.log("[GeminiZotero] Error focusing window, will recreate:", e);
+            currentPopupWindow = null;
+        }
+    } else if (currentPopupWindow) {
+        ztoolkit.log("[GeminiZotero] Window reference exists but is dead/closed, clearing");
+        currentPopupWindow = null;
     }
 
     // =====================================================================
@@ -263,6 +288,18 @@ async function showPluginPopup(win: _ZoteroTypes.MainWindow) {
     // Assemble UI Components - Auto-sizing approach
     // =====================================================================
     const dialog = new ztoolkit.Dialog(1, 1)
+        .setDialogData({
+            loadCallback: () => {
+                // This runs AFTER the dialog window is fully loaded
+                ztoolkit.log("[GeminiZotero] Dialog loaded, storing window reference");
+                currentPopupWindow = dialog.window;
+            },
+            unloadCallback: () => {
+                // This runs before the dialog window is unloaded
+                ztoolkit.log("[GeminiZotero] Dialog unloading, clearing window reference");
+                currentPopupWindow = null;
+            }
+        })
         .addCell(0, 0, {
             tag: "div",
             namespace: "html",
@@ -300,18 +337,7 @@ async function showPluginPopup(win: _ZoteroTypes.MainWindow) {
             centerscreen: true,
             resizable: false,
         });
-
-    // Store the window reference to prevent multiple popups
-    currentPopupWindow = dialog.window;
-
-    // Clear the reference when the window is closed
-    if (dialog.window) {
-        dialog.window.addEventListener("unload", () => {
-            currentPopupWindow = null;
-        });
-    }
-
-    // Let dialog use native Zotero window background (no manual override needed)
+    // Window reference is now managed by loadCallback/unloadCallback
 }
 
 

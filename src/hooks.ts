@@ -4,7 +4,7 @@ import { createZToolkit } from "./utils/ztoolkit";
 // The reader panel code is preserved in readerPanel.ts for potential future use.
 // import { registerReaderPanel } from "./modules/ui/readerPanel";
 import { registerSelectionHandler, unregisterSelectionHandler } from "./modules/ui/selectionPopup";
-import { registerCollectionToolbarButton } from "./modules/ui/collectionToolbar";
+import { registerCollectionToolbarButton, closePluginPopup } from "./modules/ui/collectionToolbar";
 import { registerBatchMenu } from "./modules/batch/batchProcessor";
 import { registerPrefObservers, unregisterPrefObservers } from "./utils/prefs";
 import { flushHistory } from "./modules/storage/historyStorage";
@@ -129,13 +129,17 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
             .show();
     }
 
+    // Add unload listener to close plugin popup when main window closes
+    win.addEventListener("unload", () => onMainWindowUnload(win));
+
     ztoolkit.log("[GeminiZotero] onMainWindowLoad completed");
 }
 
 async function onMainWindowUnload(_win: Window): Promise<void> {
     ztoolkit.log("[GeminiZotero] onMainWindowUnload called");
+    // Close the plugin popup if it's open
+    closePluginPopup();
     ztoolkit.unregisterAll();
-    addon.data.dialog?.window?.close();
     ztoolkit.log("[GeminiZotero] Window unload completed");
 }
 
