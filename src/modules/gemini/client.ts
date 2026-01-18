@@ -61,6 +61,55 @@ export class GeminiClient {
     }
 
     /**
+     * Delay helper for retry backoff
+     */
+    private delay(ms: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    /**
+     * Retry a function with exponential backoff
+     * Retries on: 429 (rate limit), 502, 503, 504 (gateway errors), network errors
+     */
+    private async retryWithBackoff<T>(
+        fn: () => Promise<T>,
+        maxRetries: number = 3,
+        baseDelayMs: number = 1000
+    ): Promise<T> {
+        let lastError: Error | null = null;
+
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                return await fn();
+            } catch (e: any) {
+                lastError = e;
+
+                // Determine if we should retry based on error type
+                const errorMessage = e.message || "";
+                const isRetryable =
+                    errorMessage.includes("429") ||  // Rate limit
+                    errorMessage.includes("502") ||  // Bad Gateway
+                    errorMessage.includes("503") ||  // Service Unavailable
+                    errorMessage.includes("504") ||  // Gateway Timeout
+                    errorMessage.includes("524") ||  // Provider Timeout
+                    errorMessage.includes("network") ||
+                    errorMessage.includes("fetch");
+
+                if (isRetryable && attempt < maxRetries - 1) {
+                    const delayMs = baseDelayMs * Math.pow(2, attempt);
+                    ztoolkit.log(`[GeminiClient] Retry ${attempt + 1}/${maxRetries} after ${delayMs}ms. Error: ${errorMessage}`);
+                    await this.delay(delayMs);
+                    continue;
+                }
+
+                throw e;
+            }
+        }
+
+        throw lastError;
+    }
+
+    /**
      * Check if PDF should use File API (>20MB)
      */
     private shouldUseFileApi(data: ArrayBuffer): boolean {
@@ -219,7 +268,7 @@ export class GeminiClient {
      * Core content generation method
      */
     /**
-     * Core content generation method
+     * Core content generation method (with automatic retry)
      */
     private async generateContent(
         contents: ChatMessage[],
@@ -244,45 +293,48 @@ export class GeminiClient {
 
         requestBody.generationConfig = generationConfig;
 
-        const response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(requestBody),
-        });
+        // Use retry wrapper for resilience against transient errors
+        return this.retryWithBackoff(async () => {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestBody),
+            });
 
-        const rawText = await response.text();
-        let data: any;
-        try {
-            data = rawText ? JSON.parse(rawText) : {};
-        } catch {
-            const errorMsg = mapHttpError(response.status, response.statusText);
-            throw new Error(`Gemini API Error: ${errorMsg}. Response start: ${rawText.slice(0, 100)}...`);
-        }
-
-        if (!response.ok) {
-            const errorMsg = mapHttpError(response.status, response.statusText);
-            throw new Error(`Gemini API Error: ${errorMsg}. Details: ${data?.error?.message || "None"}`);
-        }
-
-        const text = data.candidates?.[0]?.content?.parts?.find((p: any) => p.text)?.text || "";
-
-        // Extract images from inlineData
-        const images: string[] = [];
-        data.candidates?.[0]?.content?.parts?.forEach((part: any) => {
-            if (part.inlineData && part.inlineData.data) {
-                images.push(part.inlineData.data);
+            const rawText = await response.text();
+            let data: any;
+            try {
+                data = rawText ? JSON.parse(rawText) : {};
+            } catch {
+                const errorMsg = mapHttpError(response.status, response.statusText);
+                throw new Error(`Gemini API Error: ${errorMsg}. Response start: ${rawText.slice(0, 100)}...`);
             }
-        });
 
-        return {
-            text,
-            images: images.length > 0 ? images : undefined,
-            raw: data,
-        };
+            if (!response.ok) {
+                const errorMsg = mapHttpError(response.status, response.statusText);
+                throw new Error(`Gemini API Error: ${errorMsg}. Details: ${data?.error?.message || "None"}`);
+            }
+
+            const text = data.candidates?.[0]?.content?.parts?.find((p: any) => p.text)?.text || "";
+
+            // Extract images from inlineData
+            const images: string[] = [];
+            data.candidates?.[0]?.content?.parts?.forEach((part: any) => {
+                if (part.inlineData && part.inlineData.data) {
+                    images.push(part.inlineData.data);
+                }
+            });
+
+            return {
+                text,
+                images: images.length > 0 ? images : undefined,
+                raw: data,
+            };
+        });
     }
 
     /**
-     * Generate Image using Gemini 3 Pro Image model
+     * Generate Image using Gemini 3 Pro Image model (with automatic retry)
      * This is a specialized simplified method for the visual insights workflow
      */
     async generateImage(
@@ -304,33 +356,36 @@ export class GeminiClient {
                 }
             };
 
-            const response = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(requestBody),
+            // Use retry wrapper for resilience against transient errors
+            return await this.retryWithBackoff(async () => {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(requestBody),
+                });
+
+                const rawText = await response.text();
+                let data: any;
+                try {
+                    data = JSON.parse(rawText);
+                } catch {
+                    const errorMsg = mapHttpError(response.status, response.statusText);
+                    throw new Error(`Gemini API Error: ${errorMsg}. Response start: ${rawText.slice(0, 100)}...`);
+                }
+
+                if (!response.ok) {
+                    const errorMsg = mapHttpError(response.status, response.statusText);
+                    throw new Error(`Gemini Image API Error: ${errorMsg}. Details: ${data?.error?.message || "None"}`);
+                }
+
+                // Extract the image
+                const imagePart = data.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
+                if (!imagePart || !imagePart.inlineData?.data) {
+                    throw new Error("No image data received from Gemini");
+                }
+
+                return imagePart.inlineData.data;
             });
-
-            const rawText = await response.text();
-            let data: any;
-            try {
-                data = JSON.parse(rawText);
-            } catch {
-                const errorMsg = mapHttpError(response.status, response.statusText);
-                throw new Error(`Gemini API Error: ${errorMsg}. Response start: ${rawText.slice(0, 100)}...`);
-            }
-
-            if (!response.ok) {
-                const errorMsg = mapHttpError(response.status, response.statusText);
-                throw new Error(`Gemini Image API Error: ${errorMsg}. Details: ${data?.error?.message || "None"}`);
-            }
-
-            // Extract the image
-            const imagePart = data.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
-            if (!imagePart || !imagePart.inlineData?.data) {
-                throw new Error("No image data received from Gemini");
-            }
-
-            return imagePart.inlineData.data;
         } finally {
             this.model = originalModel; // Restore original model
         }

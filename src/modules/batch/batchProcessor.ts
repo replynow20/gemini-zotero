@@ -8,6 +8,7 @@ import { createNoteForItem } from "../export/noteExport";
 import { getTemplateById } from "../templates/builtinSchemas";
 import { syncTagsFromStructuredOutput } from "../storage/tagSync";
 import { closeProgressWindowAfter } from "../../utils/progressWindow";
+import { getPdfData } from "../../utils/pdfHelper";
 
 const ITEM_MENU_SELECTOR = "#zotero-itemmenu";
 const MENU_WAIT_ATTEMPTS = 20;
@@ -297,51 +298,7 @@ async function batchAnalyze(items: Zotero.Item[]) {
   closeProgressWindowAfter(progressWin, 5000);
 }
 
-async function getPdfData(item: Zotero.Item): Promise<ArrayBuffer | null> {
-  ztoolkit.log(`[GeminiZotero:PDF] Getting PDF for item: ${item.id}`);
-
-  // If the selected item is already a PDF attachment
-  if (item.isAttachment()) {
-    ztoolkit.log("[GeminiZotero:PDF] Item itself is an attachment");
-    if (item.attachmentContentType === "application/pdf") {
-      const path = await item.getFilePathAsync();
-      if (path) {
-        const data = await IOUtils.read(path);
-        ztoolkit.log(
-          `[GeminiZotero:PDF] Read ${data.byteLength} bytes from attachment`,
-        );
-        return data.buffer as ArrayBuffer;
-      }
-    }
-    ztoolkit.log("[GeminiZotero:PDF] Attachment is not a PDF");
-    return null;
-  }
-
-  // Otherwise try child attachments
-  const attachmentIDs = item.getAttachments();
-  ztoolkit.log(`[GeminiZotero:PDF] Found ${attachmentIDs.length} attachments`);
-
-  for (const id of attachmentIDs) {
-    const attachment = Zotero.Items.get(id);
-    ztoolkit.log(
-      `[GeminiZotero:PDF] Checking attachment ${id}: ${attachment.attachmentContentType}`,
-    );
-
-    if (attachment.attachmentContentType === "application/pdf") {
-      const path = await attachment.getFilePathAsync();
-      ztoolkit.log(`[GeminiZotero:PDF] PDF path: ${path}`);
-
-      if (path) {
-        const data = await IOUtils.read(path);
-        ztoolkit.log(`[GeminiZotero:PDF] Read ${data.byteLength} bytes`);
-        return data.buffer as ArrayBuffer;
-      }
-    }
-  }
-
-  ztoolkit.log("[GeminiZotero:PDF] No PDF found");
-  return null;
-}
+// getPdfData is now imported from ../../utils/pdfHelper
 
 function resolveTemplate(templateId: string): {
   prompt: string;

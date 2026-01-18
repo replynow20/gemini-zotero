@@ -7,6 +7,7 @@ import { registerSelectionHandler, unregisterSelectionHandler } from "./modules/
 import { registerCollectionToolbarButton } from "./modules/ui/collectionToolbar";
 import { registerBatchMenu } from "./modules/batch/batchProcessor";
 import { registerPrefObservers, unregisterPrefObservers } from "./utils/prefs";
+import { flushHistory } from "./modules/storage/historyStorage";
 
 // Track windows that have had menus registered
 const menuRegisteredWindows = new WeakSet<_ZoteroTypes.MainWindow>();
@@ -143,6 +144,8 @@ function onShutdown(): void {
     addon.data.alive = false;
     unregisterSelectionHandler();
     unregisterPrefObservers();
+    // Flush any pending history writes before shutdown
+    flushHistory().catch(e => ztoolkit.log("[GeminiZotero] Error flushing history:", e));
     ztoolkit.unregisterAll();
     ztoolkit.log("[GeminiZotero] Shutdown completed");
 }

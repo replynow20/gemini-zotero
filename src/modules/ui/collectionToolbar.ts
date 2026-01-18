@@ -18,6 +18,7 @@ import { createNoteForItem } from "../export/noteExport";
 import { syncTagsFromStructuredOutput } from "../storage/tagSync";
 import { closeProgressWindowAfter } from "../../utils/progressWindow";
 import { clearHistory, saveMessage } from "../storage/historyStorage";
+import { getPdfData } from "../../utils/pdfHelper";
 
 
 // UI Components
@@ -30,6 +31,9 @@ import { createSectionVisualInsights } from "./components/SectionVisualInsights"
 import { VisualInsightsManager, VisualStyle } from "../logic/VisualInsightsManager";
 
 const TOOLBAR_BUTTON_ID = "geminizotero-collection-toolbar-button";
+
+// Track the current popup window to prevent multiple instances
+let currentPopupWindow: Window | null = null;
 
 /**
  * Register the plugin button in the collection toolbar
@@ -85,6 +89,13 @@ export function registerCollectionToolbarButton(win: _ZoteroTypes.MainWindow) {
  * Show the plugin popup dialog (Main Controller)
  */
 async function showPluginPopup(win: _ZoteroTypes.MainWindow) {
+    // Check if a popup is already open
+    if (currentPopupWindow && !currentPopupWindow.closed) {
+        // Focus the existing window instead of opening a new one
+        currentPopupWindow.focus();
+        return;
+    }
+
     // =====================================================================
     // Get workflow templates and format them for the component
     // =====================================================================
@@ -290,6 +301,16 @@ async function showPluginPopup(win: _ZoteroTypes.MainWindow) {
             resizable: false,
         });
 
+    // Store the window reference to prevent multiple popups
+    currentPopupWindow = dialog.window;
+
+    // Clear the reference when the window is closed
+    if (dialog.window) {
+        dialog.window.addEventListener("unload", () => {
+            currentPopupWindow = null;
+        });
+    }
+
     // Let dialog use native Zotero window background (no manual override needed)
 }
 
@@ -418,7 +439,7 @@ async function analyzeSingleItem(item: Zotero.Item, template: StructuredTemplate
         });
 
         const enforcedPrompt = `${template?.prompt || ""}\n\n重要：所有输出必须使用简体中文（必要的专有名词/缩写可保留原文）。`;
-        clearHistory(item.id);
+        await clearHistory(item.id);
         const response = await client.analyzePdf(pdfData, enforcedPrompt, template?.schema);
 
         await syncTagsFromStructuredOutput(item, response.text);
@@ -503,32 +524,7 @@ ${answer}
 *由 Gemini Zotero 插件生成*`;
 }
 
-async function getPdfData(item: Zotero.Item): Promise<ArrayBuffer | null> {
-    if (item.isAttachment()) {
-        if (item.attachmentContentType === "application/pdf") {
-            const path = await item.getFilePathAsync();
-            if (path) {
-                const data = await IOUtils.read(path);
-                return data.buffer as ArrayBuffer;
-            }
-        }
-        return null;
-    }
-
-    const attachmentIDs = item.getAttachments();
-    for (const id of attachmentIDs) {
-        const attachment = Zotero.Items.get(id);
-        if (attachment.attachmentContentType === "application/pdf") {
-            const path = await attachment.getFilePathAsync();
-            if (path) {
-                const data = await IOUtils.read(path);
-                return data.buffer as ArrayBuffer;
-            }
-        }
-    }
-
-    return null;
-}
+// getPdfData is now imported from ../../utils/pdfHelper
 
 async function exportTemplates() {
     const templates = getAllTemplates().filter(t => t.id.startsWith("custom_"));

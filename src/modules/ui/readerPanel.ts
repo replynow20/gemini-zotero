@@ -24,6 +24,7 @@ import { clearHistory, saveMessage } from "../storage/historyStorage";
 import { getTemplateById } from "../templates/builtinSchemas";
 import { syncTagsFromStructuredOutput } from "../storage/tagSync";
 import { closeProgressWindowAfter } from "../../utils/progressWindow";
+import { getPdfData } from "../../utils/pdfHelper";
 
 const PANEL_STYLE_ID = "gemini-reader-panel-styles";
 
@@ -158,7 +159,7 @@ async function handleTemplateAnalysis(templateId: string, item: Zotero.Item) {
       progress: 30,
     });
 
-    clearHistory(item.id);
+    await clearHistory(item.id);
     const response = await client.analyzePdf(pdfData, enforcedPrompt, schema);
     await syncTagsFromStructuredOutput(item, response.text);
 
@@ -186,32 +187,7 @@ async function handleTemplateAnalysis(templateId: string, item: Zotero.Item) {
   }
 }
 
-async function getPdfData(item: Zotero.Item): Promise<ArrayBuffer | null> {
-  if (item.isAttachment()) {
-    if (item.attachmentContentType === "application/pdf") {
-      const path = await item.getFilePathAsync();
-      if (path) {
-        const data = await IOUtils.read(path);
-        return data.buffer as ArrayBuffer;
-      }
-    }
-    return null;
-  }
-
-  const attachmentIDs = item.getAttachments();
-  for (const id of attachmentIDs) {
-    const attachment = Zotero.Items.get(id);
-    if (attachment.attachmentContentType === "application/pdf") {
-      const path = await attachment.getFilePathAsync();
-      if (path) {
-        const data = await IOUtils.read(path);
-        return data.buffer as ArrayBuffer;
-      }
-    }
-  }
-
-  return null;
-}
+// getPdfData is now imported from ../../utils/pdfHelper
 
 function ensurePanelStyles(doc: Document) {
   if (doc.getElementById(PANEL_STYLE_ID)) {

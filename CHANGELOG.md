@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.3.1] - 2026-01-18
+
+### 🔧 Code Optimization & Refactoring
+
+- **File-Based History Storage**: Migrated conversation history from `Zotero.Prefs` to file-based storage (`historyStorage.ts`)
+  - Implemented in-memory caching with debounced writes for better performance
+  - Added automatic data migration from preferences to file system
+  - Added `flushHistory()` for proper cleanup on plugin shutdown
+  - Removed 5MB storage limit - now supports unlimited conversation history
+  
+- **PDF Helper Utilities**: Extracted duplicated `getPdfData()` function to shared utility module (`src/utils/pdfHelper.ts`)
+  - Now uses Zotero's `getBestAttachment()` API to intelligently select primary PDF when multiple attachments exist
+  - Improved logging for better debugging
+  - Reduced code duplication across `collectionToolbar.ts`, `batchProcessor.ts`, and `readerPanel.ts`
+
+- **Enhanced API Error Handling**: Added comprehensive retry mechanism to Gemini API client
+  - Automatic retry with exponential backoff for network errors (502, 503, 504)
+  - Separate retry logic for rate limiting (429) and overload (529) errors
+  - Improved timeout handling with configurable limits (10s for small files, 60s for large files)
+  - Better error messages with HTTP status codes and human-readable explanations
+
+### 🐛 Bug Fixes
+
+- **Popup Window Management**: Fixed issue where multiple popup windows could open simultaneously
+  - Only one popup window can be active at a time
+  - Clicking toolbar button now focuses existing window instead of opening duplicates
+  - Proper cleanup when popup is closed
+
+- **API Call Stability**: Improved reliability of PDF analysis with retry mechanisms
+  - Reduced failures due to temporary network issues
+  - Better handling of API rate limits and server overload
+
+### 📝 Internal Improvements
+
+- All history-related functions now use async/await pattern
+- Improved code organization and maintainability
+- Enhanced logging throughout the codebase for easier debugging
+
+---
+
 ## [0.3.0] - 2026-01-17
 
 ### 🚀 Visual Insights 2.0 (Major Update)
