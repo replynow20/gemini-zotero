@@ -1,6 +1,6 @@
 # Gemini Zotero
 
-Gemini Zotero 是一个基于 Zotero Plugin Template 开发的 Zotero 7 插件，允许你直接在 Zotero 中调用 Google Gemini/Gemini 代理服务来分析论文 PDF，查看/导出 AI 对话结果，并将输出保存为 Zotero 笔记。
+Gemini Zotero 是一个基于 Zotero Plugin Template 开发的 Zotero 插件，支持 **Zotero 7 和 Zotero 8**，允许你直接在 Zotero 中调用 Google Gemini/Gemini 代理服务来分析论文 PDF，查看/导出 AI 对话结果，并将输出保存为 Zotero 笔记。
 
 ## 已实现的功能
 

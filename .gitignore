@@ -12,3 +12,4 @@ Library/
 *.log
 tsconfig.tsbuildinfo
 tsconfig.tsbuildinfo
+.agent/
