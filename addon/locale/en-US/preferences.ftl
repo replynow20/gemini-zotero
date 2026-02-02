@@ -2,7 +2,7 @@ prefs-title = Gemini Zotero Settings
 prefs-api-key = API Key
 prefs-api-key-placeholder = Enter your Gemini API Key
 prefs-api-url = API Base URL
-prefs-api-url-placeholder = Leave empty for official API, or enter proxy URL like https://proxy.com
+prefs-api-url-placeholder = Leave empty for official API, or enter proxy URL like https://api-proxy.de/gemini
 prefs-model = Default Model
 prefs-model-params = Model Parameters
 prefs-model-params-desc = Adjust generation parameters to control randomness and diversity. Gemini 3 recommends keeping temperature = 1.0

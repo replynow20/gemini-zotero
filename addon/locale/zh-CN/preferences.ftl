@@ -1,7 +1,8 @@
+prefs-title = Gemini Zotero 设置
 prefs-api-key = API Key
 prefs-api-key-placeholder = 请输入 Gemini API Key
 prefs-api-url = API Base URL
-prefs-api-url-placeholder = 留空使用官方API，或输入代理地址如 https://proxy.com
+prefs-api-url-placeholder = 留空使用官方API，或输入代理地址如 https://api-proxy.de/gemini
 prefs-model = 默认模型
 prefs-model-params = 模型参数
 prefs-model-params-desc = 调整生成参数以控制输出的随机性和多样性。Gemini 3 建议保持 temperature = 1.0
