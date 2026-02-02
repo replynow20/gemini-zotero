@@ -408,3 +408,50 @@ export function deleteCustomTemplate(id: string): void {
     throw e;
   }
 }
+
+/**
+ * Apply tag language preference to a template prompt
+ * Replaces Chinese tag instructions with English if tagLanguage is set to en-US
+ */
+export function applyTagLanguageToPrompt(prompt: string): string {
+  try {
+    const tagLanguage = Zotero.Prefs.get("extensions.zotero.geminizotero.tagLanguage", true) as string || "zh-CN";
+
+    if (tagLanguage === "en-US") {
+      // Replace Chinese tag instructions with English
+      let modifiedPrompt = prompt;
+
+      // Pattern 1: "tags 字段列出 4-10 个可直接复用的关键词标签（不带 # 或其它符号）"
+      modifiedPrompt = modifiedPrompt.replace(
+        /tags\s*字段列出\s*4-10\s*个可直接复用的关键词标签（不带\s*#\s*或其它符号）/g,
+        "tags field should list 4-10 reusable keyword tags (without # or other symbols)"
+      );
+
+      // Pattern 2: "tags 字段列出 4-10 个可复用的主题标签（不带 # 或其它符号）"
+      modifiedPrompt = modifiedPrompt.replace(
+        /tags\s*字段列出\s*4-10\s*个可复用的主题标签（不带\s*#\s*或其它符号）/g,
+        "tags field should list 4-10 reusable topic tags (without # or other symbols)"
+      );
+
+      // Pattern 3: Generic pattern for any tags field instruction
+      modifiedPrompt = modifiedPrompt.replace(
+        /在\s*tags\s*字段列出\s*4-10\s*个[^。）]+标签[^。）]*[。）]/g,
+        "list 4-10 keyword tags in the tags field (without # or other symbols)."
+      );
+
+      // Also replace the general language instruction for tags
+      modifiedPrompt = modifiedPrompt.replace(
+        /所有字段值必须使用简体中文（必要的专有名词\/缩写可保留原文）/g,
+        "All field values must be in Simplified Chinese (necessary proper nouns/abbreviations can be kept in original language), except tags field which must be in English"
+      );
+
+      return modifiedPrompt;
+    }
+
+    return prompt;
+  } catch (error) {
+    ztoolkit.log("Error applying tag language to prompt:", error);
+    return prompt;
+  }
+}
+

@@ -21,7 +21,7 @@
 import { getString, getLocaleID } from "../../utils/locale";
 import { config } from "../../../package.json";
 import { clearHistory, saveMessage } from "../storage/historyStorage";
-import { getTemplateById } from "../templates/builtinSchemas";
+import { getTemplateById, applyTagLanguageToPrompt } from "../templates/builtinSchemas";
 import { syncTagsFromStructuredOutput } from "../storage/tagSync";
 import { closeProgressWindowAfter } from "../../utils/progressWindow";
 import { getPdfData } from "../../utils/pdfHelper";
@@ -152,7 +152,7 @@ async function handleTemplateAnalysis(templateId: string, item: Zotero.Item) {
 
     const resolved = template || getTemplateById("quick_summary");
     const { prompt, schema } = resolved || { prompt: "", schema: undefined };
-    const enforcedPrompt = `${prompt}\n\n重要：所有输出必须使用简体中文（必要的专有名词/缩写可保留原文）。`;
+    const enforcedPrompt = applyTagLanguageToPrompt(`${prompt}\n\n重要：所有输出必须使用简体中文（必要的专有名词/缩写可保留原文）。`);
     progressWin.changeLine({
       text: `正在分析（${Math.round(pdfData.byteLength / 1024 / 1024)}MB）...`,
       type: "default",

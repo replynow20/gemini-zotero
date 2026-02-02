@@ -23,3 +23,7 @@ prefs-restore-defaults = Restore Defaults
 prefs-about = About
 prefs-about-developer = Developer: Devin Fan
 prefs-about-url = Plugin URL:
+prefs-tags-section = Tags Management
+prefs-enable-tag-sync = Auto-update AI-extracted tags to Zotero items
+prefs-tag-language = Tag Language
+

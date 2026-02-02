@@ -23,3 +23,7 @@ prefs-restore-defaults = 恢复默认
 prefs-about = 关于
 prefs-about-developer = 开发者：Devin Fan
 prefs-about-url = 插件地址：
+prefs-tags-section = 标签管理
+prefs-enable-tag-sync = 自动更新 AI 提取的标签到 Zotero 条目
+prefs-tag-language = 标签语言
+

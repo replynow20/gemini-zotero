@@ -5,11 +5,19 @@
 const MAX_TAGS = 10;
 
 export async function syncTagsFromStructuredOutput(item: Zotero.Item, responseText: string): Promise<void> {
+    // Check if tag sync is enabled
+    const enableTagSync = Zotero.Prefs.get("extensions.zotero.geminizotero.enableTagSync", true) as boolean;
+    if (!enableTagSync) {
+        ztoolkit.log("[GeminiZotero:Tags] Tag sync is disabled in preferences");
+        return;
+    }
+
     const extracted = extractTags(responseText);
     if (extracted.length === 0) {
         ztoolkit.log("[GeminiZotero:Tags] No tags present in structured response");
         return;
     }
+
 
     const targetItem = resolveTagTarget(item);
     if (!targetItem) {

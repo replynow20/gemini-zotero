@@ -12,6 +12,7 @@ import {
     saveCustomTemplate,
     deleteCustomTemplate,
     DEFAULT_WORKFLOW_TEMPLATE,
+    applyTagLanguageToPrompt,
     type StructuredTemplate
 } from "../templates/builtinSchemas";
 import { createNoteForItem } from "../export/noteExport";
@@ -402,7 +403,7 @@ async function handleQuestionAnswer(question: string) {
 
         progressWin.changeLine({ text: getString("status-asking"), type: "default", progress: 40 });
 
-        const prompt = `请根据这篇论文回答用户的问题。请用简体中文回答。\n\n用户问题：${question}`;
+        const prompt = applyTagLanguageToPrompt(`请根据这篇论文回答用户的问题。请用简体中文回答。\n\n用户问题：${question}`);
         const response = await client.analyzePdf(pdfData, prompt);
 
         // Create Q&A format note
@@ -464,7 +465,7 @@ async function analyzeSingleItem(item: Zotero.Item, template: StructuredTemplate
             progress: 30,
         });
 
-        const enforcedPrompt = `${template?.prompt || ""}\n\n重要：所有输出必须使用简体中文（必要的专有名词/缩写可保留原文）。`;
+        const enforcedPrompt = applyTagLanguageToPrompt(`${template?.prompt || ""}\n\n重要：所有输出必须使用简体中文（必要的专有名词/缩写可保留原文）。`);
         await clearHistory(item.id);
         const response = await client.analyzePdf(pdfData, enforcedPrompt, template?.schema);
 
@@ -517,7 +518,7 @@ async function analyzeSingleItemWithPrompt(item: Zotero.Item, prompt: string) {
             progress: 30,
         });
 
-        const enforcedPrompt = `${prompt}\n\n重要：所有输出必须使用简体中文（必要的专有名词/缩写可保留原文）。`;
+        const enforcedPrompt = applyTagLanguageToPrompt(`${prompt}\n\n重要：所有输出必须使用简体中文（必要的专有名词/缩写可保留原文）。`);
         const response = await client.analyzePdf(pdfData, enforcedPrompt);
 
         await saveMessage(item.id, "user", `[自定义分析] ${prompt.substring(0, 30)}...`);

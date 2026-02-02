@@ -5,7 +5,7 @@
 
 import { config } from "../../../package.json";
 import { createNoteForItem } from "../export/noteExport";
-import { getTemplateById } from "../templates/builtinSchemas";
+import { getTemplateById, applyTagLanguageToPrompt } from "../templates/builtinSchemas";
 import { syncTagsFromStructuredOutput } from "../storage/tagSync";
 import { closeProgressWindowAfter } from "../../utils/progressWindow";
 import { getPdfData } from "../../utils/pdfHelper";
@@ -150,9 +150,10 @@ async function analyzeSingleItem(item: Zotero.Item) {
       ) as string) || "quick_summary";
     ztoolkit.log(`[GeminiZotero:Analyze] Using template: ${templateId}`);
     const { prompt, schema } = resolveTemplate(templateId);
+    const finalPrompt = applyTagLanguageToPrompt(prompt);
 
     ztoolkit.log("[GeminiZotero:Analyze] Calling Gemini API...");
-    const response = await client.analyzePdf(pdfData, prompt, schema);
+    const response = await client.analyzePdf(pdfData, finalPrompt, schema);
     ztoolkit.log("[GeminiZotero:Analyze] API response received");
 
     await syncTagsFromStructuredOutput(item, response.text);
@@ -231,6 +232,7 @@ async function batchAnalyze(items: Zotero.Item[]) {
       true,
     ) as string) || "quick_summary";
   const { prompt, schema } = resolveTemplate(templateId);
+  const finalPrompt = applyTagLanguageToPrompt(prompt);
 
   let successCount = 0;
   let failCount = 0;
@@ -263,7 +265,7 @@ async function batchAnalyze(items: Zotero.Item[]) {
         progress,
       });
 
-      const response = await client.analyzePdf(pdfData, prompt, schema);
+      const response = await client.analyzePdf(pdfData, finalPrompt, schema);
       await syncTagsFromStructuredOutput(item, response.text);
       await createNoteForItem(
         item,
