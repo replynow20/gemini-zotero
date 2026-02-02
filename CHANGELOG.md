@@ -2,7 +2,22 @@
 
 ## [0.4.0] - 2026-02-02
 
-### ✨ Zotero 8 Compatibility
+### ✨ New Features
+
+- **Manual Tags Control**: Added user control over AI-extracted tags synchronization
+  - New preference to enable/disable automatic tag sync to Zotero items
+  - Language selection for tags: choose between Simplified Chinese or English
+  - Tags still appear in generated notes even when sync is disabled
+  - Settings UI displays both controls on a single line for space efficiency
+
+### 🎨 UI Improvements
+
+- **Fully Localized Preferences**: Complete localization of the preferences pane
+  - All UI elements now use `data-l10n-id` attributes for proper internationalization
+  - Removed hardcoded Chinese text from XHTML markup
+  - Updated API URL example in locale files for better clarity
+
+### 🔧 Zotero 8 Compatibility
 
 - **Zotero 8 Support**: Updated plugin to support Zotero 8 while maintaining backward compatibility with Zotero 7
   - Updated build target from Firefox 115 to Firefox 140 (Zotero 8's platform base)
@@ -14,6 +29,8 @@
 - **Build Configuration**: Updated esbuild target to `firefox140` in `zotero-plugin.config.ts`
 - **Dependencies**: Confirmed latest versions of toolkit (5.1.0-beta.13), types (4.1.0-beta.4), and scaffold (0.8.2) are compatible
 - **Code Quality**: All existing code already uses modern APIs - no deprecated JSM, Services.jsm, or Bluebird promises
+- **Smart Prompt Modification**: Added `applyTagLanguageToPrompt()` helper function to dynamically adjust AI prompts based on user's language preference
+
 
 ---
 

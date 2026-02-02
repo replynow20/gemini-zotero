@@ -16,6 +16,8 @@ declare namespace _ZoteroTypes {
       "topP": string;
       "topK": string;
       "maxOutputTokens": string;
+      "enableTagSync": boolean;
+      "tagLanguage": string;
     };
   }
 }
