@@ -1,8 +1,10 @@
 prefs-title = Gemini Zotero 设置
 prefs-api-key = API Key
-prefs-api-key-placeholder = 请输入 Gemini API Key
+prefs-api-key-placeholder =
+    .placeholder = 请输入 Gemini API Key
 prefs-api-url = API Base URL
-prefs-api-url-placeholder = 留空使用官方API，或输入代理地址如 https://api-proxy.de/gemini
+prefs-api-url-placeholder =
+    .placeholder = 留空使用官方API，或输入代理地址如 https://api-proxy.de/gemini
 prefs-model = 默认模型
 prefs-model-params = 模型参数
 prefs-model-params-desc = 调整生成参数以控制输出的随机性和多样性。Gemini 3 建议保持 temperature = 1.0
@@ -24,6 +26,7 @@ prefs-about = 关于
 prefs-about-developer = 开发者：Devin Fan
 prefs-about-url = 插件地址：
 prefs-tags-section = 标签管理
-prefs-enable-tag-sync = 自动更新 AI 提取的标签到 Zotero 条目
+prefs-enable-tag-sync =
+    .label = 自动更新标签
 prefs-tag-language = 标签语言
 

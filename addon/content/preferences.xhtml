@@ -15,10 +15,8 @@
   <preference id="extensions.zotero.geminizotero.topK" name="extensions.zotero.geminizotero.topK" type="string" />
   <preference id="extensions.zotero.geminizotero.maxOutputTokens" name="extensions.zotero.geminizotero.maxOutputTokens"
     type="string" />
-  <preference id="extensions.zotero.geminizotero.enableTagSync" name="extensions.zotero.geminizotero.enableTagSync"
-    type="bool" default="true" />
-  <preference id="extensions.zotero.geminizotero.tagLanguage" name="extensions.zotero.geminizotero.tagLanguage"
-    type="string" />
+  <preference id="enableTagSync" name="extensions.zotero.geminizotero.enableTagSync" type="bool" default="true" />
+  <preference id="tagLanguage" name="extensions.zotero.geminizotero.tagLanguage" type="string" />
 
 </preferences>
 <groupbox onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', { window })">
@@ -31,7 +29,7 @@
     <html:label for="zotero-prefpane-geminizotero-apikey" style="width: 140px" data-l10n-id="prefs-api-key">
     </html:label>
     <html:input type="password" id="zotero-prefpane-geminizotero-apikey" preference="apiKey" style="flex: 1"
-      data-l10n-id="prefs-api-key-placeholder">
+      data-l10n-id="prefs-api-key-placeholder" data-l10n-attrs="placeholder">
     </html:input>
   </hbox>
 
@@ -40,7 +38,7 @@
     <html:label for="zotero-prefpane-geminizotero-apiurl" style="width: 140px" data-l10n-id="prefs-api-url">
     </html:label>
     <html:input type="text" id="zotero-prefpane-geminizotero-apiurl" preference="apiBaseUrl"
-      data-l10n-id="prefs-api-url-placeholder" style="width: 220px">
+      data-l10n-id="prefs-api-url-placeholder" data-l10n-attrs="placeholder" style="width: 220px">
     </html:input>
     <html:span style="margin-left: 10px;">自定义API或 <html:a href="javascript:void(0)"
         onclick="Zotero.launchURL('https://api.replynow.cn:6688')"
@@ -134,7 +132,7 @@
 
   <hbox align="center" style="margin-top: 8px">
     <checkbox id="zotero-prefpane-geminizotero-enable-tag-sync" preference="enableTagSync"
-      data-l10n-id="prefs-enable-tag-sync" />
+      data-l10n-id="prefs-enable-tag-sync" data-l10n-attrs="label" />
     <html:label for="zotero-prefpane-geminizotero-tag-language" style="margin-left: 20px"
       data-l10n-id="prefs-tag-language">
     </html:label>

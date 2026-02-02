@@ -1,8 +1,10 @@
 prefs-title = Gemini Zotero Settings
 prefs-api-key = API Key
-prefs-api-key-placeholder = Enter your Gemini API Key
+prefs-api-key-placeholder =
+    .placeholder = Enter your Gemini API Key
 prefs-api-url = API Base URL
-prefs-api-url-placeholder = Leave empty for official API, or enter proxy URL like https://api-proxy.de/gemini
+prefs-api-url-placeholder =
+    .placeholder = Leave empty for official API, or enter proxy URL like https://api-proxy.de/gemini
 prefs-model = Default Model
 prefs-model-params = Model Parameters
 prefs-model-params-desc = Adjust generation parameters to control randomness and diversity. Gemini 3 recommends keeping temperature = 1.0
@@ -24,6 +26,7 @@ prefs-about = About
 prefs-about-developer = Developer: Devin Fan
 prefs-about-url = Plugin URL:
 prefs-tags-section = Tags Management
-prefs-enable-tag-sync = Auto-update AI-extracted tags to Zotero items
+prefs-enable-tag-sync =
+    .label = Auto-update tags
 prefs-tag-language = Tag Language
 
