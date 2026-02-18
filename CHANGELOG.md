@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.4.2] - 2026-02-18
+
+### 🔧 Improvements
+
+- **Thread-Safe Image Generation**: Refactored `GeminiClient.generateImage()` to use a local model variable instead of temporarily mutating instance state, eliminating potential race conditions when multiple calls run concurrently
+- **Thinking Model Support**: Added filtering logic in `GeminiClient.sendRequest()` to properly handle "thinking" models (e.g., Gemini with `thought: true` parts), stripping internal reasoning content and `<think>...</think>` tags from final output
+- **Workflow Template Name Passthrough**: Custom workflow analysis now displays the actual template name (instead of generic "自定义分析") in progress messages, chat history, and generated note titles
+
+### 🧹 Code Quality
+
+- **`truncateText` Utility Consolidation**: Extracted duplicated `truncateText()` function from `batchProcessor.ts` and `selectionPopup.ts` into a shared `src/utils/text.ts` module
+- **Log Cleanup**: Removed excessive verbose logging from `hooks.ts` (lifecycle events, input updates, prefs) while retaining essential error and shutdown logs
+- **Debug Log Instructions**: Added commented-out debug log toggles in `ztoolkit.ts` with clear instructions for enabling verbose logging when needed
+
+### 🎨 UI Updates
+
+- **SVG Icons**: Switched ProgressWindow default icon and batch menu icon from `favicon.png` to `favicon-sele.svg` for sharper rendering
+
+---
+
 ## [0.4.0] - 2026-02-02
 
 ### ✨ New Features

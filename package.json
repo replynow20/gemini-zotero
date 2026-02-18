@@ -1,7 +1,7 @@
 {
   "name": "gemini-zotero",
   "type": "module",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "Zotero plugin for PDF analysis with Gemini AI",
   "config": {
     "addonName": "Gemini Zotero",
