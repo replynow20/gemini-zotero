@@ -293,6 +293,14 @@ export class GeminiClient {
 
         requestBody.generationConfig = generationConfig;
 
+        // Debug: Log request body
+        ztoolkit.log("=== Gemini API Request ===");
+        ztoolkit.log("Schema provided:", !!schema);
+        if (schema) {
+            ztoolkit.log("Schema:", JSON.stringify(schema, null, 2));
+        }
+        ztoolkit.log("Generation Config:", JSON.stringify(generationConfig, null, 2));
+
         // Use retry wrapper for resilience against transient errors
         return this.retryWithBackoff(async () => {
             const response = await fetch(url, {
@@ -310,12 +318,57 @@ export class GeminiClient {
                 throw new Error(`Gemini API Error: ${errorMsg}. Response start: ${rawText.slice(0, 100)}...`);
             }
 
+            // Debug: Log raw response
+            ztoolkit.log("=== Gemini API Raw Response ===");
+            ztoolkit.log("Response:", JSON.stringify(data, null, 2));
+
             if (!response.ok) {
                 const errorMsg = mapHttpError(response.status, response.statusText);
                 throw new Error(`Gemini API Error: ${errorMsg}. Details: ${data?.error?.message || "None"}`);
             }
 
-            const text = data.candidates?.[0]?.content?.parts?.find((p: any) => p.text)?.text || "";
+            // Debug: Log the raw parts structure
+            const allParts = data.candidates?.[0]?.content?.parts || [];
+            ztoolkit.log("=== Gemini API Response Parts ===");
+            ztoolkit.log(`Total parts: ${allParts.length}`);
+            allParts.forEach((part: any, index: number) => {
+                ztoolkit.log(`Part ${index}:`, {
+                    hasText: !!part.text,
+                    textLength: part.text?.length || 0,
+                    textPreview: part.text?.substring(0, 100),
+                    hasThought: part.thought === true,
+                    hasThoughtSignature: !!part.thoughtSignature,
+                    otherKeys: Object.keys(part).filter(k => !['text', 'thought', 'thoughtSignature'].includes(k))
+                });
+                // Log full text for non-thought parts
+                if (part.thought !== true && part.text) {
+                    ztoolkit.log(`Part ${index} FULL TEXT:`, part.text);
+                }
+            });
+
+            // Filter out thinking parts and collect valid text
+            // Skip parts with thought: true (thinking content)
+            // Note: thoughtSignature is context metadata, NOT thinking content - keep those parts
+            const validParts = data.candidates?.[0]?.content?.parts?.filter((p: any) => {
+                // Skip parts marked as thinking
+                if (p.thought === true) {
+                    return false;
+                }
+                return p.text !== undefined;
+            }) || [];
+
+            ztoolkit.log(`Valid parts after filtering: ${validParts.length}`);
+
+            // Combine all valid text parts
+            let text = validParts.map((p: any) => p.text).join('\n\n');
+
+            ztoolkit.log(`Combined text length: ${text.length}`);
+            ztoolkit.log(`Combined text preview: ${text.substring(0, 200)}`);
+
+            // Remove <think>...</think> tags (including multiline content)
+            const beforeThinkRemoval = text.length;
+            text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+            ztoolkit.log(`Text length after <think> removal: ${text.length} (removed ${beforeThinkRemoval - text.length} chars)`);
 
             // Extract images from inlineData
             const images: string[] = [];

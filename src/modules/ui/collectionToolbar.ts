@@ -192,9 +192,9 @@ async function showPluginPopup(win: _ZoteroTypes.MainWindow) {
         }
     };
 
-    const handleWorkflowRun = (prompt: string) => {
+    const handleWorkflowRun = (prompt: string, templateName?: string) => {
         if (!prompt.trim()) return;
-        handleCustomAnalysis(prompt);
+        handleCustomAnalysis(prompt, templateName);
     };
 
     const handleWorkflowDelete = (templateId: string, refreshCallback: () => void) => {
@@ -422,7 +422,7 @@ async function handleQuestionAnswer(question: string) {
     }
 }
 
-async function handleCustomAnalysis(prompt: string) {
+async function handleCustomAnalysis(prompt: string, templateName?: string) {
     const items = ztoolkit.getGlobal("ZoteroPane").getSelectedItems();
     if (!items?.length) {
         new ztoolkit.ProgressWindow(config.addonName)
@@ -432,7 +432,7 @@ async function handleCustomAnalysis(prompt: string) {
     }
 
     for (const item of items) {
-        await analyzeSingleItemWithPrompt(item, prompt);
+        await analyzeSingleItemWithPrompt(item, prompt, templateName || "自定义分析");
     }
 }
 
@@ -489,12 +489,12 @@ async function analyzeSingleItem(item: Zotero.Item, template: StructuredTemplate
     }
 }
 
-async function analyzeSingleItemWithPrompt(item: Zotero.Item, prompt: string) {
+async function analyzeSingleItemWithPrompt(item: Zotero.Item, prompt: string, templateName: string = "自定义分析") {
     const progressWin = new ztoolkit.ProgressWindow(config.addonName, {
         closeOnClick: false,
         closeTime: -1,
     })
-        .createLine({ text: "正在执行自定义分析...", type: "default", progress: 10 })
+        .createLine({ text: `正在执行${templateName}...`, type: "default", progress: 10 })
         .show();
 
     try {
@@ -521,13 +521,13 @@ async function analyzeSingleItemWithPrompt(item: Zotero.Item, prompt: string) {
         const enforcedPrompt = applyTagLanguageToPrompt(`${prompt}\n\n重要：所有输出必须使用简体中文（必要的专有名词/缩写可保留原文）。`);
         const response = await client.analyzePdf(pdfData, enforcedPrompt);
 
-        await saveMessage(item.id, "user", `[自定义分析] ${prompt.substring(0, 30)}...`);
+        await saveMessage(item.id, "user", `[${templateName}] ${prompt.substring(0, 30)}...`);
         await saveMessage(item.id, "assistant", response.text);
 
-        await createNoteForItem(item, response.text, "Gemini - 自定义分析");
+        await createNoteForItem(item, response.text, `Gemini - ${templateName}`);
 
         progressWin.changeLine({
-            text: "自定义分析完成：已生成笔记",
+            text: `${templateName}完成：已生成笔记`,
             type: "success",
             progress: 100,
         });

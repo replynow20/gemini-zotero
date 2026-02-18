@@ -13,7 +13,7 @@ interface WorkflowProps {
     onImport: () => void;
     onExport: () => void;
     onSave: (name: string, prompt: string, isNew: boolean, refreshCallback: (newTemplateId?: string) => void) => void;
-    onRun: (prompt: string) => void;
+    onRun: (prompt: string, templateName?: string) => void;
     onDelete: (templateId: string, refreshCallback: () => void) => void;
     getTemplates: () => WorkflowTemplateItem[];  // Dynamic getter instead of static list
     defaultTemplate: string;
@@ -178,12 +178,43 @@ export function createSectionWorkflow(props: WorkflowProps) {
     // UI State Functions
     // =========================================================================
 
+    // Outside click handler for auto-closing dropdown
+    let outsideClickHandler: ((e: MouseEvent) => void) | null = null;
+
     const toggleDropdown = (doc: Document) => {
         isDropdownOpen = !isDropdownOpen;
         const dropdown = doc.getElementById("geminizotero-dropdown-menu");
         const arrow = doc.getElementById("geminizotero-dropdown-arrow");
         if (dropdown) (dropdown as HTMLElement).style.display = isDropdownOpen ? "block" : "none";
         if (arrow) arrow.innerHTML = isDropdownOpen ? "▲" : "▼";
+
+        // Add/remove outside click listener
+        if (isDropdownOpen) {
+            // Create handler if not exists
+            if (!outsideClickHandler) {
+                outsideClickHandler = (e: MouseEvent) => {
+                    const dropdown = doc.getElementById("geminizotero-dropdown-menu");
+                    const trigger = doc.getElementById("geminizotero-trigger-row");
+                    const target = e.target as Node;
+
+                    // Close if clicked outside dropdown and trigger
+                    if (dropdown && trigger &&
+                        !dropdown.contains(target) &&
+                        !trigger.contains(target)) {
+                        closeDropdown(doc);
+                    }
+                };
+            }
+            // Add listener with slight delay to avoid immediate trigger
+            setTimeout(() => {
+                doc.addEventListener("click", outsideClickHandler!, true);
+            }, 10);
+        } else {
+            // Remove listener when closing
+            if (outsideClickHandler) {
+                doc.removeEventListener("click", outsideClickHandler, true);
+            }
+        }
     };
 
     const closeDropdown = (doc: Document) => {
@@ -192,6 +223,11 @@ export function createSectionWorkflow(props: WorkflowProps) {
         const arrow = doc.getElementById("geminizotero-dropdown-arrow");
         if (dropdown) (dropdown as HTMLElement).style.display = "none";
         if (arrow) arrow.innerHTML = "▼";
+
+        // Remove outside click listener
+        if (outsideClickHandler) {
+            doc.removeEventListener("click", outsideClickHandler, true);
+        }
     };
 
     const selectTemplate = (doc: Document, templateId: string) => {
@@ -928,7 +964,12 @@ export function createSectionWorkflow(props: WorkflowProps) {
                                             ztoolkit.getGlobal("alert")("请输入分析指令");
                                             return;
                                         }
-                                        props.onRun(currentPrompt);
+
+                                        // Get template name for note title
+                                        const selected = getSelectedTemplate();
+                                        const templateName = selected?.name || (isCreatingNew ? "自定义分析" : "自定义分析");
+
+                                        props.onRun(currentPrompt, templateName);
                                     }
                                 }]
                             }

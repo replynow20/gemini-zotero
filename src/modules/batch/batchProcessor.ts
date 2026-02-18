@@ -18,7 +18,7 @@ export async function registerBatchMenu(win?: Window) {
   ztoolkit.log("[GeminiZotero:BatchMenu] Starting menu registration...");
 
   try {
-    const menuIcon = `chrome://${config.addonRef}/content/icons/favicon.png`;
+    const menuIcon = `chrome://${config.addonRef}/content/icons/favicon-sele.svg`;
     ztoolkit.log(`[GeminiZotero:BatchMenu] Menu icon path: ${menuIcon}`);
 
     const documentRef = win?.document ?? Zotero.getMainWindow()?.document;

@@ -11,6 +11,9 @@ function createZToolkit() {
 
 function initZToolkit(_ztoolkit: ReturnType<typeof createZToolkit>) {
     _ztoolkit.basicOptions.log.prefix = `[${config.addonName}]`;
+    // 临时开启调试日志：将下面两行的值改为 false 即可在所有环境中输出日志
+    // _ztoolkit.basicOptions.log.disableConsole = false;
+    // _ztoolkit.basicOptions.log.disableZLog = false;
     _ztoolkit.basicOptions.log.disableConsole = __env__ !== "development";
     _ztoolkit.basicOptions.log.disableZLog = __env__ !== "development";
     _ztoolkit.UI.basicOptions.ui.enableElementJSONLog = __env__ === "development";
@@ -18,6 +21,6 @@ function initZToolkit(_ztoolkit: ReturnType<typeof createZToolkit>) {
     _ztoolkit.basicOptions.api.pluginID = config.addonID;
     _ztoolkit.ProgressWindow.setIconURI(
         "default",
-        `chrome://${config.addonRef}/content/icons/favicon.png`,
+        `chrome://${config.addonRef}/content/icons/favicon-sele.svg`,
     );
 }
