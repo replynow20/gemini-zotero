@@ -9,6 +9,7 @@ import { getTemplateById, applyTagLanguageToPrompt } from "../templates/builtinS
 import { syncTagsFromStructuredOutput } from "../storage/tagSync";
 import { closeProgressWindowAfter } from "../../utils/progressWindow";
 import { getPdfData } from "../../utils/pdfHelper";
+import { truncateText } from "../../utils/text";
 
 const ITEM_MENU_SELECTOR = "#zotero-itemmenu";
 const MENU_WAIT_ATTEMPTS = 20;
@@ -311,7 +312,3 @@ function resolveTemplate(templateId: string): {
   return template || { prompt: "", schema: undefined };
 }
 
-function truncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength) + "...";
-}

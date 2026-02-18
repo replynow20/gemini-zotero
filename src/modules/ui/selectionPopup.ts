@@ -6,6 +6,7 @@
 import { config } from "../../../package.json";
 import { saveMessage } from "../storage/historyStorage";
 import { closeProgressWindowAfter } from "../../utils/progressWindow";
+import { truncateText } from "../../utils/text";
 
 const SELECTION_EVENT = "renderTextSelectionPopup";
 let selectionHandlerRegistered = false;
@@ -315,7 +316,3 @@ function showResultDialog(title: string, content: string) {
   }
 }
 
-function truncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength) + "...";
-}

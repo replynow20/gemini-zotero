@@ -265,9 +265,6 @@ export class GeminiClient {
     }
 
     /**
-     * Core content generation method
-     */
-    /**
      * Core content generation method (with automatic retry)
      */
     private async generateContent(
@@ -293,13 +290,11 @@ export class GeminiClient {
 
         requestBody.generationConfig = generationConfig;
 
-        // Debug: Log request body
-        ztoolkit.log("=== Gemini API Request ===");
-        ztoolkit.log("Schema provided:", !!schema);
-        if (schema) {
-            ztoolkit.log("Schema:", JSON.stringify(schema, null, 2));
-        }
-        ztoolkit.log("Generation Config:", JSON.stringify(generationConfig, null, 2));
+        // 如需调试 API 请求，取消注释以下行：
+        // ztoolkit.log("=== Gemini API Request ===");
+        // ztoolkit.log("Schema provided:", !!schema);
+        // if (schema) ztoolkit.log("Schema:", JSON.stringify(schema, null, 2));
+        // ztoolkit.log("Generation Config:", JSON.stringify(generationConfig, null, 2));
 
         // Use retry wrapper for resilience against transient errors
         return this.retryWithBackoff(async () => {
@@ -318,33 +313,32 @@ export class GeminiClient {
                 throw new Error(`Gemini API Error: ${errorMsg}. Response start: ${rawText.slice(0, 100)}...`);
             }
 
-            // Debug: Log raw response
-            ztoolkit.log("=== Gemini API Raw Response ===");
-            ztoolkit.log("Response:", JSON.stringify(data, null, 2));
+            // 如需调试 API 响应，取消注释以下行：
+            // ztoolkit.log("=== Gemini API Raw Response ===");
+            // ztoolkit.log("Response:", JSON.stringify(data, null, 2));
 
             if (!response.ok) {
                 const errorMsg = mapHttpError(response.status, response.statusText);
                 throw new Error(`Gemini API Error: ${errorMsg}. Details: ${data?.error?.message || "None"}`);
             }
 
-            // Debug: Log the raw parts structure
-            const allParts = data.candidates?.[0]?.content?.parts || [];
-            ztoolkit.log("=== Gemini API Response Parts ===");
-            ztoolkit.log(`Total parts: ${allParts.length}`);
-            allParts.forEach((part: any, index: number) => {
-                ztoolkit.log(`Part ${index}:`, {
-                    hasText: !!part.text,
-                    textLength: part.text?.length || 0,
-                    textPreview: part.text?.substring(0, 100),
-                    hasThought: part.thought === true,
-                    hasThoughtSignature: !!part.thoughtSignature,
-                    otherKeys: Object.keys(part).filter(k => !['text', 'thought', 'thoughtSignature'].includes(k))
-                });
-                // Log full text for non-thought parts
-                if (part.thought !== true && part.text) {
-                    ztoolkit.log(`Part ${index} FULL TEXT:`, part.text);
-                }
-            });
+            // 如需调试响应结构，取消注释以下行：
+            // const allParts = data.candidates?.[0]?.content?.parts || [];
+            // ztoolkit.log("=== Gemini API Response Parts ===");
+            // ztoolkit.log(`Total parts: ${allParts.length}`);
+            // allParts.forEach((part: any, index: number) => {
+            //     ztoolkit.log(`Part ${index}:`, {
+            //         hasText: !!part.text,
+            //         textLength: part.text?.length || 0,
+            //         textPreview: part.text?.substring(0, 100),
+            //         hasThought: part.thought === true,
+            //         hasThoughtSignature: !!part.thoughtSignature,
+            //         otherKeys: Object.keys(part).filter(k => !['text', 'thought', 'thoughtSignature'].includes(k))
+            //     });
+            //     if (part.thought !== true && part.text) {
+            //         ztoolkit.log(`Part ${index} FULL TEXT:`, part.text);
+            //     }
+            // });
 
             // Filter out thinking parts and collect valid text
             // Skip parts with thought: true (thinking content)
@@ -357,18 +351,16 @@ export class GeminiClient {
                 return p.text !== undefined;
             }) || [];
 
-            ztoolkit.log(`Valid parts after filtering: ${validParts.length}`);
+            // ztoolkit.log(`Valid parts after filtering: ${validParts.length}`);
 
             // Combine all valid text parts
             let text = validParts.map((p: any) => p.text).join('\n\n');
 
-            ztoolkit.log(`Combined text length: ${text.length}`);
-            ztoolkit.log(`Combined text preview: ${text.substring(0, 200)}`);
+            // ztoolkit.log(`Combined text length: ${text.length}`);
+            // ztoolkit.log(`Combined text preview: ${text.substring(0, 200)}`);
 
             // Remove <think>...</think> tags (including multiline content)
-            const beforeThinkRemoval = text.length;
             text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-            ztoolkit.log(`Text length after <think> removal: ${text.length} (removed ${beforeThinkRemoval - text.length} chars)`);
 
             // Extract images from inlineData
             const images: string[] = [];
@@ -389,59 +381,54 @@ export class GeminiClient {
     /**
      * Generate Image using Gemini 3 Pro Image model (with automatic retry)
      * This is a specialized simplified method for the visual insights workflow
+     * Uses a local model variable to avoid mutating instance state (thread-safe)
      */
     async generateImage(
         prompt: string,
         imageConfig: { aspectRatio?: string; imageSize?: string } = { aspectRatio: "16:9", imageSize: "2K" }
     ): Promise<string> {
-        // Temporarily switch model to image model (or use a separate client instance, but modifying state is cheaper here)
-        const originalModel = this.model;
-        this.model = "gemini-3-pro-image-preview"; // Force use of image model
+        // Use a dedicated image model without mutating this.model (avoids race conditions)
+        const imageModel = "gemini-3-pro-image-preview";
+        const url = `${this.apiEndpoint}/models/${imageModel}:generateContent?key=${this.apiKey}`;
 
-        try {
-            const url = `${this.apiEndpoint}/models/${this.model}:generateContent?key=${this.apiKey}`;
+        const requestBody = {
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig: {
+                responseModalities: ["TEXT", "IMAGE"],
+                imageConfig: imageConfig
+            }
+        };
 
-            const requestBody = {
-                contents: [{ role: "user", parts: [{ text: prompt }] }],
-                generationConfig: {
-                    responseModalities: ["TEXT", "IMAGE"],
-                    imageConfig: imageConfig
-                }
-            };
-
-            // Use retry wrapper for resilience against transient errors
-            return await this.retryWithBackoff(async () => {
-                const response = await fetch(url, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(requestBody),
-                });
-
-                const rawText = await response.text();
-                let data: any;
-                try {
-                    data = JSON.parse(rawText);
-                } catch {
-                    const errorMsg = mapHttpError(response.status, response.statusText);
-                    throw new Error(`Gemini API Error: ${errorMsg}. Response start: ${rawText.slice(0, 100)}...`);
-                }
-
-                if (!response.ok) {
-                    const errorMsg = mapHttpError(response.status, response.statusText);
-                    throw new Error(`Gemini Image API Error: ${errorMsg}. Details: ${data?.error?.message || "None"}`);
-                }
-
-                // Extract the image
-                const imagePart = data.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
-                if (!imagePart || !imagePart.inlineData?.data) {
-                    throw new Error("No image data received from Gemini");
-                }
-
-                return imagePart.inlineData.data;
+        // Use retry wrapper for resilience against transient errors
+        return this.retryWithBackoff(async () => {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestBody),
             });
-        } finally {
-            this.model = originalModel; // Restore original model
-        }
+
+            const rawText = await response.text();
+            let data: any;
+            try {
+                data = JSON.parse(rawText);
+            } catch {
+                const errorMsg = mapHttpError(response.status, response.statusText);
+                throw new Error(`Gemini API Error: ${errorMsg}. Response start: ${rawText.slice(0, 100)}...`);
+            }
+
+            if (!response.ok) {
+                const errorMsg = mapHttpError(response.status, response.statusText);
+                throw new Error(`Gemini Image API Error: ${errorMsg}. Details: ${data?.error?.message || "None"}`);
+            }
+
+            // Extract the image
+            const imagePart = data.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
+            if (!imagePart || !imagePart.inlineData?.data) {
+                throw new Error("No image data received from Gemini");
+            }
+
+            return imagePart.inlineData.data;
+        });
     }
 
     /**
