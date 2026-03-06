@@ -32,9 +32,15 @@ export function createSectionAnalysis(props: AnalysisProps) {
             cursor: "pointer",
             height: "96px",
             width: "100%",
+            minWidth: "0",  // Allow Grid items to shrink below content size
             transition: "all 0.2s",
             position: "relative",
             boxSizing: "border-box",
+            overflow: "hidden",  // Prevent content overflow on Mac
+            // Cross-platform: disable native button appearance
+            appearance: "none",
+            MozAppearance: "none",
+            WebkitAppearance: "none",
         };
 
         return {

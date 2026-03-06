@@ -816,6 +816,8 @@ export function createSectionWorkflow(props: WorkflowProps) {
                                                     alignItems: "center",
                                                     gap: "4px",
                                                     cursor: "pointer",
+                                                    appearance: "none",
+                                                    MozAppearance: "none",
                                                 },
                                                 children: [
                                                     IconLoader.create("upload", { size: 12 }),
@@ -839,6 +841,8 @@ export function createSectionWorkflow(props: WorkflowProps) {
                                                     alignItems: "center",
                                                     gap: "4px",
                                                     cursor: "pointer",
+                                                    appearance: "none",
+                                                    MozAppearance: "none",
                                                 },
                                                 children: [
                                                     IconLoader.create("download", { size: 12 }),
@@ -899,7 +903,7 @@ export function createSectionWorkflow(props: WorkflowProps) {
                                 tag: "button",
                                 namespace: "html",
                                 properties: {
-                                    style: `width: 100%; height: 36px; display: flex; align-items: center; justify-content: center; gap: 8px; background-color: transparent; color: #374151; border: 2px solid #E5E7EB; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;`,
+                                    style: `width: 100%; height: 36px; display: flex; align-items: center; justify-content: center; gap: 8px; background-color: transparent; color: #374151; border: 2px solid #E5E7EB; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; appearance: none; -moz-appearance: none;`,
                                 },
                                 children: [
                                     IconLoader.create("save", { size: 16 }),
@@ -945,7 +949,7 @@ export function createSectionWorkflow(props: WorkflowProps) {
                                 tag: "button",
                                 namespace: "html",
                                 properties: {
-                                    style: `width: 100%; height: 36px; display: flex; align-items: center; justify-content: center; gap: 8px; background: ${THEME.colors.primary}; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;`,
+                                    style: `width: 100%; height: 36px; display: flex; align-items: center; justify-content: center; gap: 8px; background: ${THEME.colors.primary}; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; appearance: none; -moz-appearance: none;`,
                                 },
                                 children: [
                                     IconLoader.create("play", { size: 16, color: "white" }),

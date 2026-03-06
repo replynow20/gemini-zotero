@@ -116,7 +116,7 @@ export function createSectionChat(props: ChatProps) {
                 },
                 properties: {
                     // Inline style has highest priority in XUL - must include all layout properties
-                    style: `width: 100% !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; background: ${THEME.colors.primary} !important; background-color: ${THEME.colors.primary} !important; background-image: none !important; color: white !important; border: none !important; box-sizing: border-box !important;`,
+                    style: `width: 100% !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; background: ${THEME.colors.primary} !important; background-color: ${THEME.colors.primary} !important; background-image: none !important; color: white !important; border: none !important; box-sizing: border-box !important; appearance: none !important; -moz-appearance: none !important;`,
                 },
                 children: [
                     IconLoader.create("auto-awesome", { size: 16, color: "white" }),

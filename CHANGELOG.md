@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.4.5] - 2026-03-06
+
+### 🌐 Cross-Platform Compatibility
+
+- **macOS UI Fix**: Fixed layout issues on macOS where Analysis Mode cards, buttons, and controls appeared misaligned or overflowed due to native button rendering overriding custom styles
+  - Added `appearance: none` / `-moz-appearance: none` to all `<button>` elements across the plugin UI
+  - Added `overflow: hidden` and `minWidth: 0` to Analysis Mode cards for proper Grid layout behavior
+  - Affects: SectionAnalysis, SectionChat, SectionWorkflow, SectionVisualInsights
+
+### 🔧 Improvements
+
+- **Flexible Language Output**: Removed forced Chinese language enforcement from Chat Q&A and Custom Workflow prompts, allowing users to specify output language freely in their prompts
+- **Gemini 3.1 Pro Preview**: Added `gemini-3.1-pro-preview` as a selectable model option in Preferences
+
+---
+
 ## [0.4.2] - 2026-02-18
 
 ### 🔧 Improvements

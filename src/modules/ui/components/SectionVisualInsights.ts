@@ -54,6 +54,9 @@ export function createSectionVisualInsights(props: VisualInsightsProps) {
                 height: "38px",
                 minWidth: "50px",
                 position: "relative", // For potential checkmark
+                // Cross-platform: disable native button appearance
+                appearance: "none",
+                MozAppearance: "none",
             },
             properties: {
                 innerHTML: `
@@ -174,7 +177,7 @@ export function createSectionVisualInsights(props: VisualInsightsProps) {
                         },
                         properties: {
                             // Use inline style for XUL compatibility
-                            style: `min-width: 85px !important; height: 38px !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 4px !important; background: ${THEME.colors.primary} !important; background-color: ${THEME.colors.primary} !important; color: white !important; border: none !important;`,
+                            style: `min-width: 85px !important; height: 38px !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 4px !important; background: ${THEME.colors.primary} !important; background-color: ${THEME.colors.primary} !important; color: white !important; border: none !important; appearance: none !important; -moz-appearance: none !important;`,
                             innerHTML: `
                                 <div style="width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; color: white;">
                                     ${IconLoader.getRaw("auto-awesome")}
