@@ -403,7 +403,7 @@ async function handleQuestionAnswer(question: string) {
 
         progressWin.changeLine({ text: getString("status-asking"), type: "default", progress: 40 });
 
-        const prompt = applyTagLanguageToPrompt(`请根据这篇论文回答用户的问题。请用简体中文回答。\n\n用户问题：${question}`);
+        const prompt = `请根据这篇论文回答用户的问题。\n\n用户问题：${question}`;
         const response = await client.analyzePdf(pdfData, prompt);
 
         // Create Q&A format note
@@ -518,7 +518,7 @@ async function analyzeSingleItemWithPrompt(item: Zotero.Item, prompt: string, te
             progress: 30,
         });
 
-        const enforcedPrompt = applyTagLanguageToPrompt(`${prompt}\n\n重要：所有输出必须使用简体中文（必要的专有名词/缩写可保留原文）。`);
+        const enforcedPrompt = prompt;
         const response = await client.analyzePdf(pdfData, enforcedPrompt);
 
         await saveMessage(item.id, "user", `[${templateName}] ${prompt.substring(0, 30)}...`);
