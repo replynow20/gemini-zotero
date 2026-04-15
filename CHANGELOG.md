@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.6] - 2026-04-15
+
+### 🔧 Zotero 9 Compatibility
+
+- **Zotero 9 Support**: Updated plugin to be successfully recognized and installed by the newly released Zotero 9.
+  - Bumped `strict_max_version` to `9.*` in manifest file.
+  - Inherits full backward compatibility with Zotero 7 and Zotero 8.
+
 ## [0.4.5] - 2026-03-06
 
 ### 🌐 Cross-Platform Compatibility
