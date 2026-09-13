@@ -569,25 +569,13 @@ async function exportTemplates() {
         return;
     }
 
-    // @ts-expect-error - FilePicker class not fully typed
-    const fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(
-        Components.interfaces.nsIFilePicker
-    );
-
-    const win = Zotero.getMainWindow();
-    fp.init(win, getString("dialog-export-title"), fp.modeSave);
-    fp.defaultString = "gemini-templates.json";
-    fp.appendFilter("JSON Files", "*.json");
-
-    const result = await new Promise<number>((resolve) => {
-        fp.open((res: number) => resolve(res));
-    });
-
-    if (result !== fp.returnOK && result !== fp.returnReplace) {
-        return;
-    }
-
-    const path = fp.file?.path;
+    const path = await new ztoolkit.FilePicker(
+        getString("dialog-export-title"),
+        "save",
+        [["JSON Files", "*.json"]],
+        "gemini-templates.json",
+        Zotero.getMainWindow()
+    ).open();
     if (!path) return;
 
     await IOUtils.writeUTF8(path, JSON.stringify(templates, null, 2));
@@ -598,24 +586,13 @@ async function exportTemplates() {
 }
 
 async function importTemplates() {
-    // @ts-expect-error - FilePicker class not fully typed
-    const fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(
-        Components.interfaces.nsIFilePicker
-    );
-
-    const win = Zotero.getMainWindow();
-    fp.init(win, getString("dialog-import-title"), fp.modeOpen);
-    fp.appendFilter("JSON Files", "*.json");
-
-    const result = await new Promise<number>((resolve) => {
-        fp.open((res: number) => resolve(res));
-    });
-
-    if (result !== fp.returnOK) {
-        return;
-    }
-
-    const path = fp.file?.path;
+    const path = await new ztoolkit.FilePicker(
+        getString("dialog-import-title"),
+        "open",
+        [["JSON Files", "*.json"]],
+        undefined,
+        Zotero.getMainWindow()
+    ).open();
     if (!path) return;
 
     try {

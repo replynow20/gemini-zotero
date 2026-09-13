@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## [0.5.0] - 2026-09-13
+
+### Zotero 10 Compatibility
+
+- Extended the plugin compatibility range through Zotero 10.0.
+- Migrated file import and export dialogs to Zotero's Firefox 140-compatible FilePicker wrapper.
+- Updated the Services type reference from the removed JSM path to the current ESM path.
+
 ### Model Updates
 
 - Updated text model choices to `gemini-3.8-flash` and `gemini-3.7-flash`, with automatic migration from retired preview models.

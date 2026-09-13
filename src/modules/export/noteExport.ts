@@ -327,25 +327,13 @@ export async function exportAsMarkdownFile(
   content: string,
   filename: string = "gemini-export.md",
 ): Promise<string | null> {
-  // @ts-expect-error - Components classes not fully typed
-  const fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(
-    Components.interfaces.nsIFilePicker,
-  );
-
-  const win = Zotero.getMainWindow();
-  fp.init(win, "保存 Markdown 文件", fp.modeSave);
-  fp.defaultString = filename;
-  fp.appendFilter("Markdown Files", "*.md");
-
-  const result = await new Promise<number>((resolve) => {
-    fp.open((res: number) => resolve(res));
-  });
-
-  if (result !== fp.returnOK && result !== fp.returnReplace) {
-    return null;
-  }
-
-  const path = fp.file?.path;
+  const path = await new ztoolkit.FilePicker(
+    "保存 Markdown 文件",
+    "save",
+    [["Markdown Files", "*.md"]],
+    filename,
+    Zotero.getMainWindow(),
+  ).open();
   if (!path) return null;
 
   // Add header
