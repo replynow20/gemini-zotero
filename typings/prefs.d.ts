@@ -10,6 +10,7 @@ declare namespace _ZoteroTypes {
       "apiKey": string;
       "apiBaseUrl": string;
       "model": string;
+      "imageModel": string;
       "autoSaveStructuredOutput": boolean;
       "defaultTemplate": string;
       "temperature": string;

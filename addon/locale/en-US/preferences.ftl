@@ -6,6 +6,7 @@ prefs-api-url = API Base URL
 prefs-api-url-placeholder =
     .placeholder = Leave empty for official API, or enter proxy URL like https://api-proxy.de/gemini
 prefs-model = Default Model
+prefs-image-model = Image Model
 prefs-model-params = Model Parameters
 prefs-model-params-desc = Adjust generation parameters to control randomness and diversity. Gemini 3 recommends keeping temperature = 1.0
 prefs-temperature = Temperature
@@ -29,4 +30,3 @@ prefs-tags-section = Tags Management
 prefs-enable-tag-sync =
     .label = Auto-update tags
 prefs-tag-language = Tag Language
-

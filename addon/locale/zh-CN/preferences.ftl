@@ -6,6 +6,7 @@ prefs-api-url = API Base URL
 prefs-api-url-placeholder =
     .placeholder = 留空使用官方API，或输入代理地址如 https://api-proxy.de/gemini
 prefs-model = 默认模型
+prefs-image-model = 生图模型
 prefs-model-params = 模型参数
 prefs-model-params-desc = 调整生成参数以控制输出的随机性和多样性。Gemini 3 建议保持 temperature = 1.0
 prefs-temperature = Temperature
@@ -29,4 +30,3 @@ prefs-tags-section = 标签管理
 prefs-enable-tag-sync =
     .label = 自动更新标签
 prefs-tag-language = 标签语言
-

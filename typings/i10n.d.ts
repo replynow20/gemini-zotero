@@ -50,6 +50,7 @@ export type FluentMessageId =
   | 'prefs-auto-save'
   | 'prefs-default-template'
   | 'prefs-enable-tag-sync'
+  | 'prefs-image-model'
   | 'prefs-max-tokens'
   | 'prefs-max-tokens-desc'
   | 'prefs-max-tokens-detail'

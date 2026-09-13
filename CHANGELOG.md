@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Model Updates
+
+- Updated text model choices to `gemini-3.8-flash` and `gemini-3.7-flash`, with automatic migration from retired preview models.
+- Added configurable image model selection for `gemini-3-pro-image` and `gemini-3.1-flash-image`.
+- Fixed Gemini Files API URL construction and file-state polling for large PDF uploads.
+
 ## [0.4.6] - 2026-04-15
 
 ### 🔧 Zotero 9 Compatibility

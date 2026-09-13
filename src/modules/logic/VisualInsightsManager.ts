@@ -15,7 +15,7 @@ export class VisualInsightsManager {
     /**
      * Coordinate the 2-step Visual Insights workflow
      * 1. Use Flash (via analyzePdf) to understand the paper and generate a precise image prompt.
-     * 2. Use Pro Image (via generateImage) to create the visual.
+     * 2. Use the configured image model (via generateImage) to create the visual.
      * 
      * @param pdfData - The PDF content as ArrayBuffer
      * @param style - The visual style to generate
@@ -59,7 +59,6 @@ export class VisualInsightsManager {
 
         // analyzePdf handles file upload/caching internally.
         // We pass the schema to force structured JSON output.
-        // @ts-ignore - Schema argument is supported in underlying client but might not be in type definition if strict
         const response1 = await this.client.analyzePdf(pdfData, promptGenerationPrompt, designSchema);
 
         let manifest: any;

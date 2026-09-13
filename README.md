@@ -57,7 +57,8 @@ npm run build   # 产物位于 .scaffold/build/
 | --- | --- |
 | API Key | 来自 Google Gemini 或你自建代理的 API 密钥 |
 | API Base URL | 代理域名，如 `apiurl.com`；插件会自动补上 `/v1beta`，无论是否带尾斜杠 |
-| 默认模型 | 例如 `gemini-3-flash-preview` |
+| 默认模型 | `gemini-3.8-flash` 或 `gemini-3.7-flash` |
+| 生图模型 | `gemini-3-pro-image` 或 `gemini-3.1-flash-image` |
 | 默认模板 | `quick_summary` / `standard_analysis` / `deep_analysis` |
 | 自动保存结构化输出 | 为 `true` 时在分析完成后自动生成 Zotero 笔记 |
 

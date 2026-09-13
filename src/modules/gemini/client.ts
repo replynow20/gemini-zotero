@@ -10,6 +10,9 @@ const PDF_SIZE_THRESHOLD = 20 * 1024 * 1024; // 20MB
 const DEFAULT_API_BASE = "https://generativelanguage.googleapis.com";
 const API_VERSION_PATH = "/v1beta";
 
+export const DEFAULT_TEXT_MODEL = "gemini-3.8-flash";
+export const DEFAULT_IMAGE_MODEL = "gemini-3-pro-image";
+
 export interface GeminiConfig {
     apiKey: string;
     model: string;
@@ -37,20 +40,25 @@ export interface GenerateContentResponse {
 export class GeminiClient {
     private apiKey: string;
     private model: string;
+    private imageModel: string;
+    private apiRoot: string;
     private apiEndpoint: string;
     private generationConfig: GenerationConfig;
 
     constructor(
         apiKey: string,
-        model: string = "gemini-3-flash-preview", // Updated default to Flash Preview (optimized for text/multimodal)
+        model: string = DEFAULT_TEXT_MODEL,
         apiEndpoint?: string,
-        generationConfig?: GenerationConfig
+        generationConfig?: GenerationConfig,
+        imageModel: string = DEFAULT_IMAGE_MODEL
     ) {
         this.apiKey = apiKey;
         this.model = model;
+        this.imageModel = imageModel;
         // Normalize endpoint: remove trailing slash
         const base = apiEndpoint?.trim() || DEFAULT_API_BASE;
         this.apiEndpoint = normalizeApiEndpoint(base);
+        this.apiRoot = this.apiEndpoint.replace(/\/v1(?:beta)?$/, "");
         // Set generation config with defaults
         this.generationConfig = {
             temperature: generationConfig?.temperature ?? 1.0,
@@ -139,7 +147,7 @@ export class GeminiClient {
      */
     async uploadFile(data: ArrayBuffer, mimeType: string, displayName: string): Promise<{ uri: string; mimeType: string }> {
         // Step 1: Start resumable upload
-        const startUrl = `${this.apiEndpoint}/upload/v1beta/files?key=${this.apiKey}`;
+        const startUrl = `${this.apiRoot}/upload/v1beta/files?key=${this.apiKey}`;
         const startResponse = await fetch(startUrl, {
             method: "POST",
             headers: {
@@ -190,15 +198,24 @@ export class GeminiClient {
             }
 
             await new Promise(resolve => setTimeout(resolve, 2000));
+            const normalizedFileName = fileName.replace(/^\/+/, "");
             const statusResponse = await fetch(
-                `${this.apiEndpoint}/files/${fileName}?key=${this.apiKey}`
+                `${this.apiRoot}/v1beta/${normalizedFileName}?key=${this.apiKey}`,
             );
+            if (!statusResponse.ok) {
+                const errorMsg = mapHttpError(statusResponse.status, statusResponse.statusText);
+                throw new Error(`Failed to check file status: ${errorMsg}`);
+            }
             const statusData = (await statusResponse.json()) as unknown as { state: string };
             fileState = statusData.state;
 
             if (fileState === "FAILED") {
                 throw new Error("Gemini failed to process the uploaded file");
             }
+        }
+
+        if (fileState !== "ACTIVE") {
+            throw new Error(`Gemini returned unexpected file state: ${fileState}`);
         }
 
         return {
@@ -379,17 +396,15 @@ export class GeminiClient {
     }
 
     /**
-     * Generate Image using Gemini 3 Pro Image model (with automatic retry)
+     * Generate an image using the configured Gemini image model.
      * This is a specialized simplified method for the visual insights workflow
-     * Uses a local model variable to avoid mutating instance state (thread-safe)
+     * and does not mutate the text model selection.
      */
     async generateImage(
         prompt: string,
         imageConfig: { aspectRatio?: string; imageSize?: string } = { aspectRatio: "16:9", imageSize: "2K" }
     ): Promise<string> {
-        // Use a dedicated image model without mutating this.model (avoids race conditions)
-        const imageModel = "gemini-3-pro-image-preview";
-        const url = `${this.apiEndpoint}/models/${imageModel}:generateContent?key=${this.apiKey}`;
+        const url = `${this.apiEndpoint}/models/${this.imageModel}:generateContent?key=${this.apiKey}`;
 
         const requestBody = {
             contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -422,7 +437,9 @@ export class GeminiClient {
             }
 
             // Extract the image
-            const imagePart = data.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
+            const imagePart = data.candidates?.[0]?.content?.parts?.find(
+                (p: any) => p.inlineData?.data && p.thought !== true,
+            );
             if (!imagePart || !imagePart.inlineData?.data) {
                 throw new Error("No image data received from Gemini");
             }
@@ -452,8 +469,8 @@ function normalizeApiEndpoint(baseUrl: string): string {
         normalized = DEFAULT_API_BASE;
     }
 
-    // Only append version if not already present in some form
-    if (!normalized.includes("/v1beta") && !normalized.includes("/v1")) {
+    // Treat a version only as the final path segment, not a substring elsewhere.
+    if (!/\/v1(?:beta)?$/.test(normalized)) {
         normalized += API_VERSION_PATH;
     }
 

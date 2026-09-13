@@ -2,7 +2,19 @@ import { config } from "../package.json";
 import { DialogHelper } from "zotero-plugin-toolkit";
 import hooks from "./hooks";
 import { createZToolkit } from "./utils/ztoolkit";
-import { GeminiClient } from "./modules/gemini/client";
+import {
+    DEFAULT_IMAGE_MODEL,
+    DEFAULT_TEXT_MODEL,
+    GeminiClient,
+} from "./modules/gemini/client";
+
+const LEGACY_TEXT_MODELS = new Set([
+    "gemini-3-flash-preview",
+    "gemini-3-pro-preview",
+    "gemini-3.1-pro-preview",
+]);
+
+const LEGACY_IMAGE_MODELS = new Set(["gemini-3-pro-image-preview"]);
 
 class Addon {
     public data: {
@@ -45,7 +57,7 @@ class Addon {
         if (!this.data.geminiClient) {
             const apiKey = Zotero.Prefs.get(`${config.prefsPrefix}.apiKey`, true) as string;
             if (apiKey) {
-                const model = (Zotero.Prefs.get(`${config.prefsPrefix}.model`, true) as string) || "gemini-3-flash-preview";
+                const { model, imageModel } = this.migrateModelPreferences();
                 const apiBaseUrl = ((Zotero.Prefs.get(`${config.prefsPrefix}.apiBaseUrl`, true) as string) || "").trim();
 
                 // Read generation config from preferences
@@ -58,11 +70,30 @@ class Addon {
                     apiKey,
                     model,
                     apiBaseUrl || undefined,
-                    { temperature, topP, topK, maxOutputTokens }
+                    { temperature, topP, topK, maxOutputTokens },
+                    imageModel,
                 );
             }
         }
         return this.data.geminiClient;
+    }
+
+    migrateModelPreferences(): { model: string; imageModel: string } {
+        const modelPref = `${config.prefsPrefix}.model`;
+        const imageModelPref = `${config.prefsPrefix}.imageModel`;
+        let model = (Zotero.Prefs.get(modelPref, true) as string) || DEFAULT_TEXT_MODEL;
+        let imageModel = (Zotero.Prefs.get(imageModelPref, true) as string) || DEFAULT_IMAGE_MODEL;
+
+        if (LEGACY_TEXT_MODELS.has(model)) {
+            model = DEFAULT_TEXT_MODEL;
+            Zotero.Prefs.set(modelPref, model, true);
+        }
+        if (LEGACY_IMAGE_MODELS.has(imageModel)) {
+            imageModel = DEFAULT_IMAGE_MODEL;
+            Zotero.Prefs.set(imageModelPref, imageModel, true);
+        }
+
+        return { model, imageModel };
     }
 
     /**

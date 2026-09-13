@@ -1,6 +1,15 @@
 import { config } from "../../package.json";
 
-const PREFS_TO_WATCH = new Set(["apiKey", "apiBaseUrl", "model"]);
+const PREFS_TO_WATCH = new Set([
+    "apiKey",
+    "apiBaseUrl",
+    "model",
+    "imageModel",
+    "temperature",
+    "topP",
+    "topK",
+    "maxOutputTokens",
+]);
 
 let prefBranch: any = null;
 

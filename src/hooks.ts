@@ -20,6 +20,7 @@ async function onStartup() {
     ]);
 
     initLocale();
+    addon.migrateModelPreferences();
 
     // Register preference pane
     try {

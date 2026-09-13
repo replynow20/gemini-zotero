@@ -7,6 +7,8 @@
   <preference id="extensions.zotero.geminizotero.apiBaseUrl" name="extensions.zotero.geminizotero.apiBaseUrl"
     type="string" />
   <preference id="extensions.zotero.geminizotero.model" name="extensions.zotero.geminizotero.model" type="string" />
+  <preference id="extensions.zotero.geminizotero.imageModel" name="extensions.zotero.geminizotero.imageModel"
+    type="string" />
   <preference id="extensions.zotero.geminizotero.autoSaveStructuredOutput"
     name="extensions.zotero.geminizotero.autoSaveStructuredOutput" type="bool" default="true" />
   <preference id="extensions.zotero.geminizotero.temperature" name="extensions.zotero.geminizotero.temperature"
@@ -52,9 +54,20 @@
     </html:label>
     <menulist id="zotero-prefpane-geminizotero-model" preference="model">
       <menupopup>
-        <menuitem label="Gemini 3 Flash Preview" value="gemini-3-flash-preview" />
-        <menuitem label="Gemini 3 Pro Preview" value="gemini-3-pro-preview" />
-        <menuitem label="Gemini 3.1 Pro Preview" value="gemini-3.1-pro-preview" />
+        <menuitem label="Gemini 3.8 Flash" value="gemini-3.8-flash" />
+        <menuitem label="Gemini 3.7 Flash" value="gemini-3.7-flash" />
+      </menupopup>
+    </menulist>
+  </hbox>
+
+  <!-- Image Model Selection -->
+  <hbox align="center" style="margin-top: 10px">
+    <html:label for="zotero-prefpane-geminizotero-image-model" style="width: 140px" data-l10n-id="prefs-image-model">
+    </html:label>
+    <menulist id="zotero-prefpane-geminizotero-image-model" preference="imageModel">
+      <menupopup>
+        <menuitem label="Gemini 3 Pro Image" value="gemini-3-pro-image" />
+        <menuitem label="Gemini 3.1 Flash Image" value="gemini-3.1-flash-image" />
       </menupopup>
     </menulist>
   </hbox>
