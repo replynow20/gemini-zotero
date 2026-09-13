@@ -92,10 +92,7 @@ export class VisualInsightsManager {
         // Step 3: Generate the image using the specialized Image model
         onProgress?.("Generating image...", 60);
 
-        const base64Image = await this.imageProvider.generateImage(imagePrompt, {
-            aspectRatio: "16:9",
-            imageSize: "2K"
-        });
+        const base64Image = await this.imageProvider.generateImage(imagePrompt);
 
         onProgress?.("Visual generated successfully!", 100);
 

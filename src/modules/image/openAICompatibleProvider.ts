@@ -1,6 +1,19 @@
-import type { ImageGenerationOptions, ImageGenerationProvider } from "./types";
+import type { ImageGenerationProvider } from "./types";
 
 const RETRYABLE_STATUS_CODES = new Set([429, 502, 503, 504, 524]);
+const DEFAULT_IMAGE_PRESET: OpenAIImagePreset = {
+  size: "1536x1024",
+  quality: "medium",
+};
+const FALLBACK_IMAGE_PRESET: OpenAIImagePreset = {
+  size: "1536x1024",
+  quality: "low",
+};
+
+interface OpenAIImagePreset {
+  size: "1536x1024";
+  quality: "low" | "medium";
+}
 
 interface OpenAIImageResponse {
   data?: Array<{
@@ -10,6 +23,16 @@ interface OpenAIImageResponse {
   error?: {
     message?: string;
   };
+}
+
+class OpenAIImageRequestError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = "OpenAIImageRequestError";
+  }
 }
 
 export class OpenAICompatibleImageProvider implements ImageGenerationProvider {
@@ -23,9 +46,24 @@ export class OpenAICompatibleImageProvider implements ImageGenerationProvider {
     this.apiEndpoint = normalizeOpenAIEndpoint(apiBaseUrl);
   }
 
-  async generateImage(
+  async generateImage(prompt: string): Promise<string> {
+    try {
+      return await this.generateWithPreset(prompt, DEFAULT_IMAGE_PRESET);
+    } catch (error) {
+      if (!shouldRetryWithLowerQuality(error)) {
+        throw error;
+      }
+
+      ztoolkit.log(
+        "[OpenAICompatibleImageProvider] Image generation failed at medium quality; retrying at low quality",
+      );
+      return this.generateWithPreset(prompt, FALLBACK_IMAGE_PRESET);
+    }
+  }
+
+  private async generateWithPreset(
     prompt: string,
-    options: ImageGenerationOptions = {},
+    preset: OpenAIImagePreset,
   ): Promise<string> {
     const response = await this.fetchWithRetry(
       `${this.apiEndpoint}/images/generations`,
@@ -39,9 +77,8 @@ export class OpenAICompatibleImageProvider implements ImageGenerationProvider {
           model: this.model,
           prompt,
           n: 1,
-          size: mapAspectRatioToSize(options.aspectRatio),
-          quality:
-            options.imageSize?.toUpperCase() === "2K" ? "high" : "medium",
+          size: preset.size,
+          quality: preset.quality,
           output_format: "png",
           response_format: "b64_json",
         }),
@@ -53,14 +90,17 @@ export class OpenAICompatibleImageProvider implements ImageGenerationProvider {
     try {
       data = rawText ? JSON.parse(rawText) : {};
     } catch {
-      throw new Error(
-        `OpenAI image API returned invalid JSON (${response.status}). Response start: ${rawText.slice(0, 100)}...`,
-      );
+      const message = `OpenAI image API returned invalid JSON (${response.status}). Response start: ${rawText.slice(0, 100)}...`;
+      if (!response.ok) {
+        throw new OpenAIImageRequestError(message, response.status);
+      }
+      throw new Error(message);
     }
 
     if (!response.ok) {
-      throw new Error(
+      throw new OpenAIImageRequestError(
         `OpenAI image API error (${response.status}): ${data.error?.message || response.statusText}`,
+        response.status,
       );
     }
 
@@ -144,17 +184,18 @@ function normalizeOpenAIEndpoint(baseUrl: string): string {
   return `${normalized}/v1`;
 }
 
-function mapAspectRatioToSize(aspectRatio?: string): string {
-  switch (aspectRatio) {
-    case "16:9":
-    case "3:2":
-      return "1536x1024";
-    case "9:16":
-    case "2:3":
-      return "1024x1536";
-    default:
-      return "1024x1024";
+function shouldRetryWithLowerQuality(error: unknown): boolean {
+  if (!(error instanceof OpenAIImageRequestError)) {
+    return false;
   }
+
+  return (
+    error.status === 400 ||
+    error.status === 413 ||
+    error.status === 422 ||
+    error.status === 429 ||
+    error.status >= 500
+  );
 }
 
 function stripDataUrlPrefix(data: string): string {

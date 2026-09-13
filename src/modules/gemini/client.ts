@@ -13,6 +13,9 @@ const API_VERSION_PATH = "/v1beta";
 export const DEFAULT_TEXT_MODEL = "gemini-3.8-flash";
 export const DEFAULT_IMAGE_MODEL = "gemini-3-pro-image";
 
+const DEFAULT_IMAGE_CONFIG = { aspectRatio: "16:9", imageSize: "2K" };
+const FALLBACK_IMAGE_SIZE = "1K";
+
 export interface GeminiConfig {
     apiKey: string;
     model: string;
@@ -402,7 +405,33 @@ export class GeminiClient {
      */
     async generateImage(
         prompt: string,
-        imageConfig: { aspectRatio?: string; imageSize?: string } = { aspectRatio: "16:9", imageSize: "2K" }
+        imageConfig?: { aspectRatio?: string; imageSize?: string }
+    ): Promise<string> {
+        const primaryConfig = { ...DEFAULT_IMAGE_CONFIG, ...imageConfig };
+
+        try {
+            return await this.generateImageWithConfig(prompt, primaryConfig);
+        } catch (error) {
+            if (
+                primaryConfig.imageSize === FALLBACK_IMAGE_SIZE ||
+                !shouldRetryGeminiImageAtLowerResolution(error)
+            ) {
+                throw error;
+            }
+
+            ztoolkit.log(
+                `[GeminiClient] Image generation failed at ${primaryConfig.imageSize}; retrying at ${FALLBACK_IMAGE_SIZE}`,
+            );
+            return this.generateImageWithConfig(prompt, {
+                ...primaryConfig,
+                imageSize: FALLBACK_IMAGE_SIZE,
+            });
+        }
+    }
+
+    private async generateImageWithConfig(
+        prompt: string,
+        imageConfig: { aspectRatio?: string; imageSize?: string },
     ): Promise<string> {
         const url = `${this.apiEndpoint}/models/${this.imageModel}:generateContent?key=${this.apiKey}`;
 
@@ -475,6 +504,10 @@ function normalizeApiEndpoint(baseUrl: string): string {
     }
 
     return normalized;
+}
+
+function shouldRetryGeminiImageAtLowerResolution(error: unknown): boolean {
+    return error instanceof Error && /\b(?:400|413|422|429|500|502|503|504|524)\b/.test(error.message);
 }
 
 function mapHttpError(status: number, statusText: string): string {
