@@ -1,10 +1,7 @@
 /**
- * Gemini API Client for Zotero
- * Uses @google/genai SDK with File API support for large PDFs
+ * Fetch-based Gemini REST client for Zotero, including Files API support for
+ * large PDFs.
  */
-
-// Note: @google/genai will be bundled by esbuild
-// For Zotero environment, we use fetch-based approach that mimics SDK behavior
 
 const PDF_SIZE_THRESHOLD = 20 * 1024 * 1024; // 20MB
 const DEFAULT_API_BASE = "https://generativelanguage.googleapis.com";
@@ -80,7 +77,7 @@ export class GeminiClient {
 
     /**
      * Retry a function with exponential backoff
-     * Retries on: 429 (rate limit), 502, 503, 504 (gateway errors), network errors
+     * Retries on 429, 502, 503, 504, 524, and network/fetch errors.
      */
     private async retryWithBackoff<T>(
         fn: () => Promise<T>,

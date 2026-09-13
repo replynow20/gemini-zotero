@@ -187,8 +187,6 @@ async function handleTemplateAnalysis(templateId: string, item: Zotero.Item) {
   }
 }
 
-// getPdfData is now imported from ../../utils/pdfHelper
-
 function ensurePanelStyles(doc: Document) {
   if (doc.getElementById(PANEL_STYLE_ID)) {
     return;

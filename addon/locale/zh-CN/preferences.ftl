@@ -1,14 +1,18 @@
 prefs-title = Gemini Zotero 设置
 prefs-api-key = API Key
 prefs-api-key-placeholder =
-    .placeholder = 请输入 Gemini API Key
+    .placeholder = 请输入 Gemini 或兼容网关的 API Key
 prefs-api-url = API Base URL
 prefs-api-url-placeholder =
-    .placeholder = 留空使用官方API，或输入代理地址如 https://api-proxy.de/gemini
+    .placeholder = 留空使用 Gemini 官方接口，或输入兼容网关地址
+prefs-api-url-detail = GPT Image 要求同一 URL 和 Key 同时提供 Gemini /v1beta 与 OpenAI-compatible /v1 接口。
+prefs-api-custom = 自定义 API 或
+prefs-api-purchase = 购买服务
 prefs-model = 默认模型
 prefs-image-model = 生图模型
-prefs-model-params = 模型参数
-prefs-model-params-desc = 调整生成参数以控制输出的随机性和多样性。Gemini 3 建议保持 temperature = 1.0
+prefs-image-model-detail = Gemini 图片模型使用 Gemini 接口；GPT Image 使用同一网关上的 OpenAI-compatible 图片接口。
+prefs-model-params = 文本模型参数
+prefs-model-params-desc = 这些参数只影响 Gemini 文本和 PDF 分析，不控制图片尺寸或质量。Gemini 3 建议保持 temperature = 1.0
 prefs-temperature = Temperature
 prefs-temperature-desc = 范围 0-2，控制随机性
 prefs-temperature-detail = 值越高，输出越随机和创造性;值越低，输出越确定和一致
@@ -21,11 +25,12 @@ prefs-top-k-detail = 每步只考虑概率最高的 K 个候选词，降低可�
 prefs-max-tokens = Max Output Tokens
 prefs-max-tokens-desc = 最大输出长度
 prefs-max-tokens-detail = 限制生成内容的最大长度，1 token ≈ 0.75 个英文单词
-prefs-auto-save = 自动保存结构化输出为笔记
+prefs-auto-save = 单条右键分析完成后自动保存为笔记
 prefs-restore-defaults = 恢复默认
 prefs-about = 关于
 prefs-about-developer = 开发者：Devin Fan
 prefs-about-url = 插件地址：
+prefs-about-download = 下载插件
 prefs-tags-section = 标签管理
 prefs-enable-tag-sync =
     .label = 自动更新标签

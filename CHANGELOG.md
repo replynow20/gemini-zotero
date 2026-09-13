@@ -4,6 +4,8 @@
 
 ## [0.5.0] - 2026-09-13
 
+[Detailed release notes](./2026-09-13-135646-release-notes-v0-5-0.md)
+
 ### Zotero 10 Compatibility
 
 - Extended the plugin compatibility range through Zotero 10.0.
@@ -13,8 +15,15 @@
 ### Model Updates
 
 - Updated text model choices to `gemini-3.8-flash` and `gemini-3.7-flash`, with automatic migration from retired preview models.
-- Added configurable image model selection for `gemini-3-pro-image` and `gemini-3.1-flash-image`.
+- Added configurable image model selection for `gemini-3-pro-image`, `gemini-3.1-flash-image`, and `gpt-image-2`.
+- Added an OpenAI-compatible image provider for GPT Image models. It reuses the configured API Key and Base URL while keeping PDF analysis on Gemini.
+- Added automatic migration from `gemini-3-pro-image-preview` to the current default image model.
 - Fixed Gemini Files API URL construction and file-state polling for large PDF uploads.
+
+### Image Generation Reliability
+
+- Added exponential-backoff retries for transient OpenAI-compatible image API and image download failures.
+- Added provider-specific fallback presets: Gemini retries from 2K to 1K, while GPT Image retries from medium to low quality at `1536x1024`.
 
 ## [0.4.6] - 2026-04-15
 
@@ -88,9 +97,8 @@
 
 - **Build Configuration**: Updated esbuild target to `firefox140` in `zotero-plugin.config.ts`
 - **Dependencies**: Confirmed latest versions of toolkit (5.1.0-beta.13), types (4.1.0-beta.4), and scaffold (0.8.2) are compatible
-- **Code Quality**: All existing code already uses modern APIs - no deprecated JSM, Services.jsm, or Bluebird promises
+- **Code Quality**: Runtime application code uses modern APIs without deprecated JSM or Bluebird calls; the remaining Services type declaration was migrated to ESM in v0.5.0
 - **Smart Prompt Modification**: Added `applyTagLanguageToPrompt()` helper function to dynamically adjust AI prompts based on user's language preference
-
 
 ---
 
@@ -102,8 +110,7 @@
   - Implemented in-memory caching with debounced writes for better performance
   - Added automatic data migration from preferences to file system
   - Added `flushHistory()` for proper cleanup on plugin shutdown
-  - Removed 5MB storage limit - now supports unlimited conversation history
-  
+  - Replaced preference storage with a file-backed store capped at 10MB and 50 messages per item
 - **PDF Helper Utilities**: Extracted duplicated `getPdfData()` function to shared utility module (`src/utils/pdfHelper.ts`)
   - Now uses Zotero's `getBestAttachment()` API to intelligently select primary PDF when multiple attachments exist
   - Improved logging for better debugging
@@ -183,7 +190,6 @@
   - Smaller header padding
   - Reduced section spacing
   - Import/Export buttons moved to Prompt Instructions row for better space utilization
-  
 - **Inline Delete Confirmation**: Replaced native confirm dialog with inline [确认][取消] buttons
   - No more window focus issues when deleting templates
   - Smoother user experience within the popup
@@ -213,12 +219,14 @@
 ## [0.2.6] - 2026-01-15
 
 ### Features
+
 - Analysis mode selection with visual feedback
 - Collection toolbar button with popup menu
 - PDF selection popup for quick Q&A
 - Model parameter settings in preferences
 
 ### UI
+
 - Stitch-inspired modern design
 - Blue primary color theme
 - Responsive button styling

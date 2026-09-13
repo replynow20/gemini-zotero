@@ -3,14 +3,6 @@ gemini-zotero-panel-header =
 gemini-zotero-panel-sidenav =
     .tooltiptext = Gemini AI 分析
 
-prefs-title = Gemini Zotero 设置
-prefs-api-key = API 密钥
-prefs-api-key-placeholder = 请输入 Gemini API Key
-prefs-api-url = API 地址
-prefs-model = 默认模型
-prefs-default-template = 默认模板
-prefs-auto-save = 自动保存结构化输出为笔记
-
 template-quick-summary = 快速摘要
 template-standard-analysis = 标准分析
 template-deep-analysis = 深度解读
@@ -53,8 +45,8 @@ alert-fill-template = 请填写模板名称和分析要求
 btn-run-custom = ▶️ 执行自定义分析
 alert-enter-prompt = 请输入分析要求
 popup-section-vis = 🎨 文献可视化
-btn-vis-generate = 🖼️ 生成研究内容可视化图 (开发中)
-vis-desc = 此功能将使用 Gemini 图像生成能力，将文献研究内容绘制成可视化图表
+btn-vis-generate = 🖼️ 生成可视化图
+vis-desc = 先由 Gemini 分析论文，再由所选 Gemini 或 OpenAI-compatible 图片模型生成可视化图表
 dialog-export-title = 导出模板
 dialog-import-title = 导入模板
 alert-select-items = 请先选中一个或多个文献

@@ -1,14 +1,18 @@
 prefs-title = Gemini Zotero Settings
 prefs-api-key = API Key
 prefs-api-key-placeholder =
-    .placeholder = Enter your Gemini API Key
+    .placeholder = Enter your Gemini or gateway API Key
 prefs-api-url = API Base URL
 prefs-api-url-placeholder =
-    .placeholder = Leave empty for official API, or enter proxy URL like https://api-proxy.de/gemini
+    .placeholder = Leave empty for the official Gemini API, or enter a compatible gateway URL
+prefs-api-url-detail = GPT Image requires this same URL and Key to expose both Gemini /v1beta and OpenAI-compatible /v1 endpoints.
+prefs-api-custom = Custom API or
+prefs-api-purchase = purchase access
 prefs-model = Default Model
 prefs-image-model = Image Model
-prefs-model-params = Model Parameters
-prefs-model-params-desc = Adjust generation parameters to control randomness and diversity. Gemini 3 recommends keeping temperature = 1.0
+prefs-image-model-detail = Gemini image models use the Gemini API. GPT Image uses the OpenAI-compatible image endpoint on the same gateway.
+prefs-model-params = Text Model Parameters
+prefs-model-params-desc = These settings apply only to Gemini text and PDF analysis, not image size or quality. Gemini 3 recommends keeping temperature = 1.0
 prefs-temperature = Temperature
 prefs-temperature-desc = Range 0-2, controls randomness
 prefs-temperature-detail = Higher values produce more random and creative output; lower values produce more deterministic output
@@ -21,11 +25,12 @@ prefs-top-k-detail = Considers only K most probable candidates at each step; low
 prefs-max-tokens = Max Output Tokens
 prefs-max-tokens-desc = Maximum output length
 prefs-max-tokens-detail = Limits maximum length of generated content; 1 token ≈ 0.75 English words
-prefs-auto-save = Auto-save structured output as notes
+prefs-auto-save = Auto-save single-item context-menu analysis as a note
 prefs-restore-defaults = Restore Defaults
 prefs-about = About
 prefs-about-developer = Developer: Devin Fan
 prefs-about-url = Plugin URL:
+prefs-about-download = Download plugin
 prefs-tags-section = Tags Management
 prefs-enable-tag-sync =
     .label = Auto-update tags

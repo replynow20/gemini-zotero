@@ -19,7 +19,7 @@ export class VisualInsightsManager {
     }
 
     /**
-     * Coordinate the 2-step Visual Insights workflow
+     * Coordinate the two remote-call stages of the Visual Insights workflow.
      * 1. Use Flash (via analyzePdf) to understand the paper and generate a precise image prompt.
      * 2. Use the configured image model (via generateImage) to create the visual.
      * 
@@ -85,11 +85,11 @@ export class VisualInsightsManager {
 
         ztoolkit.log(`[VisualInsights] Design Manifest:`, manifest);
 
-        // Step 2: Construct the final Image Prompt from the manifest
+        // Construct the final image prompt from the structured manifest.
         const imagePrompt = this.constructImagePrompt(manifest);
         ztoolkit.log(`[VisualInsights] Final Image Prompt:`, imagePrompt);
 
-        // Step 3: Generate the image using the specialized Image model
+        // Step 2: Generate the image with the configured provider.
         onProgress?.("Generating image...", 60);
 
         const base64Image = await this.imageProvider.generateImage(imagePrompt);

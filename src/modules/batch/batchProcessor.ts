@@ -301,8 +301,6 @@ async function batchAnalyze(items: Zotero.Item[]) {
   closeProgressWindowAfter(progressWin, 5000);
 }
 
-// getPdfData is now imported from ../../utils/pdfHelper
-
 function resolveTemplate(templateId: string): {
   prompt: string;
   schema?: object;
@@ -311,4 +309,3 @@ function resolveTemplate(templateId: string): {
     getTemplateById(templateId) || getTemplateById("quick_summary");
   return template || { prompt: "", schema: undefined };
 }
-

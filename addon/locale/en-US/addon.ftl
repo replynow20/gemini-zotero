@@ -3,8 +3,6 @@ gemini-zotero-panel-header =
 gemini-zotero-panel-sidenav =
     .tooltiptext = Gemini AI Analysis
 
-prefs-default-template = Default Template
-
 template-quick-summary = Quick Summary
 template-standard-analysis = Standard Analysis
 template-deep-analysis = Deep Analysis
@@ -47,8 +45,8 @@ alert-fill-template = Please fill in template name and requirements
 btn-run-custom = ▶️ Run Custom Analysis
 alert-enter-prompt = Please enter analysis requirements
 popup-section-vis = 🎨 Visualization
-btn-vis-generate = 🖼️ Generate Visualization (In Development)
-vis-desc = This feature will use Gemini image generation to visualize research content
+btn-vis-generate = 🖼️ Generate Visualization
+vis-desc = Gemini analyzes the paper first, then the selected Gemini or OpenAI-compatible image model generates the visualization
 dialog-export-title = Export Templates
 dialog-import-title = Import Templates
 alert-select-items = Please select one or more items

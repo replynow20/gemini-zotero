@@ -42,11 +42,14 @@
     <html:input type="text" id="zotero-prefpane-geminizotero-apiurl" preference="apiBaseUrl"
       data-l10n-id="prefs-api-url-placeholder" data-l10n-attrs="placeholder" style="width: 220px">
     </html:input>
-    <html:span style="margin-left: 10px;">自定义API或 <html:a href="javascript:void(0)"
-        onclick="Zotero.launchURL('https://api.replynow.cn:6688')"
-        style="color: #1a73e8; text-decoration: none; cursor: pointer">购买</html:a>
+    <html:span style="margin-left: 10px;">
+      <html:span data-l10n-id="prefs-api-custom"></html:span>
+      <html:a href="javascript:void(0)" onclick="Zotero.launchURL('https://api.replynow.cn:6688')"
+        style="color: #1a73e8; text-decoration: none; cursor: pointer" data-l10n-id="prefs-api-purchase"></html:a>
     </html:span>
   </hbox>
+  <html:p style="margin: 4px 0 0 140px; font-size: 11px; color: #888" data-l10n-id="prefs-api-url-detail">
+  </html:p>
 
   <!-- Model Selection -->
   <hbox align="center" style="margin-top: 10px">
@@ -59,7 +62,6 @@
       </menupopup>
     </menulist>
   </hbox>
-
   <!-- Image Model Selection -->
   <hbox align="center" style="margin-top: 10px">
     <html:label for="zotero-prefpane-geminizotero-image-model" style="width: 140px" data-l10n-id="prefs-image-model">
@@ -72,6 +74,8 @@
       </menupopup>
     </menulist>
   </hbox>
+  <html:p style="margin: 4px 0 0 140px; font-size: 11px; color: #888" data-l10n-id="prefs-image-model-detail">
+  </html:p>
 
   <!-- Separator for Model Parameters -->
   <label style="margin-top: 16px">
@@ -166,12 +170,13 @@
   </label>
   <html:div style="font-size: 12px; color: #666; line-height: 1.6">
     <html:p style="margin: 0 0 6px 0">
-      <html:strong>Gemini Zotero</html:strong> v__buildVersion__ · Developed by Devin Fan
+      <html:strong>Gemini Zotero</html:strong> v__buildVersion__ ·
+      <html:span data-l10n-id="prefs-about-developer"></html:span>
     </html:p>
     <html:p style="margin: 0">
       <html:span data-l10n-id="prefs-about-url"></html:span>
       <html:a href="javascript:void(0)" onclick="Zotero.launchURL('https://ahuia.top:4430/s/7YBb8TKoaKmwJmJ')"
-        style="color: #1a73e8; text-decoration: none; cursor: pointer">下载插件</html:a>
+        style="color: #1a73e8; text-decoration: none; cursor: pointer" data-l10n-id="prefs-about-download"></html:a>
     </html:p>
   </html:div>
 </groupbox>
