@@ -56,13 +56,13 @@ npm run build   # 产物位于 .scaffold/build/
 | 选项 | 作用 |
 | --- | --- |
 | API Key | 来自 Google Gemini 或你自建代理的 API 密钥 |
-| API Base URL | 代理域名，如 `apiurl.com`；插件会自动补上 `/v1beta`，无论是否带尾斜杠 |
+| API Base URL | 代理域名，如 `apiurl.com`；插件会按所选模型自动使用 Gemini `/v1beta` 或 OpenAI-compatible `/v1` 接口 |
 | 默认模型 | `gemini-3.8-flash` 或 `gemini-3.7-flash` |
-| 生图模型 | `gemini-3-pro-image` 或 `gemini-3.1-flash-image` |
+| 生图模型 | `gemini-3-pro-image`、`gemini-3.1-flash-image` 或 `gpt-image-2`；GPT Image 自动使用同一 Base URL 和 Key 的 OpenAI-compatible 图片接口 |
 | 默认模板 | `quick_summary` / `standard_analysis` / `deep_analysis` |
 | 自动保存结构化输出 | 为 `true` 时在分析完成后自动生成 Zotero 笔记 |
 
-> 💡 **Base URL 规则**：仅需输入域名或包含额外路径的根地址；插件会保证最终请求地址形如 `https://your-domain.example.com/v1beta/models/<model>:generateContent`.
+> 💡 **Base URL 规则**：仅需输入域名或包含额外路径的根地址。Gemini 请求形如 `https://your-domain.example.com/v1beta/models/<model>:generateContent`；GPT Image 请求形如 `https://your-domain.example.com/v1/images/generations`。
 
 ## 开发提示
 

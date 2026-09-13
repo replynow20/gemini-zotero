@@ -242,6 +242,12 @@ async function showPluginPopup(win: _ZoteroTypes.MainWindow) {
                 closeProgressWindowAfter(progressWin, 4000);
                 return;
             }
+            const imageProvider = addon.getImageProvider();
+            if (!imageProvider) {
+                progressWin.changeLine({ text: getString("error-no-api-key"), type: "fail", progress: 100 });
+                closeProgressWindowAfter(progressWin, 4000);
+                return;
+            }
 
             const pdfData = await getPdfData(item);
             if (!pdfData) {
@@ -252,7 +258,7 @@ async function showPluginPopup(win: _ZoteroTypes.MainWindow) {
 
             progressWin.changeLine({ text: "Step 2/3: Analyzing with Flash model...", type: "default", progress: 15 });
 
-            const manager = new VisualInsightsManager(client);
+            const manager = new VisualInsightsManager(client, imageProvider);
 
             // Use progress callback for detailed updates
             const base64Image = await manager.generateInsight(pdfData, style, (step, progress) => {

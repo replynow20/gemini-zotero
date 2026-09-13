@@ -7,6 +7,11 @@ import {
     DEFAULT_TEXT_MODEL,
     GeminiClient,
 } from "./modules/gemini/client";
+import {
+    isOpenAICompatibleImageModel,
+    OpenAICompatibleImageProvider,
+} from "./modules/image/openAICompatibleProvider";
+import type { ImageGenerationProvider } from "./modules/image/types";
 
 const LEGACY_TEXT_MODELS = new Set([
     "gemini-3-flash-preview",
@@ -32,6 +37,7 @@ class Addon {
         dialog?: DialogHelper;
         // Gemini Zotero specific data
         geminiClient?: GeminiClient;
+        imageProvider?: ImageGenerationProvider;
         currentPdfPath?: string;
     };
 
@@ -78,6 +84,28 @@ class Addon {
         return this.data.geminiClient;
     }
 
+    /**
+     * Use the selected image model's native protocol with the same API key and URL.
+     */
+    getImageProvider(): ImageGenerationProvider | undefined {
+        const geminiClient = this.getGeminiClient();
+        if (!geminiClient) {
+            return undefined;
+        }
+
+        if (!this.data.imageProvider) {
+            const apiKey = Zotero.Prefs.get(`${config.prefsPrefix}.apiKey`, true) as string;
+            const apiBaseUrl = ((Zotero.Prefs.get(`${config.prefsPrefix}.apiBaseUrl`, true) as string) || "").trim();
+            const { imageModel } = this.migrateModelPreferences();
+
+            this.data.imageProvider = isOpenAICompatibleImageModel(imageModel)
+                ? new OpenAICompatibleImageProvider(apiKey, imageModel, apiBaseUrl)
+                : geminiClient;
+        }
+
+        return this.data.imageProvider;
+    }
+
     migrateModelPreferences(): { model: string; imageModel: string } {
         const modelPref = `${config.prefsPrefix}.model`;
         const imageModelPref = `${config.prefsPrefix}.imageModel`;
@@ -101,6 +129,7 @@ class Addon {
      */
     resetGeminiClient() {
         this.data.geminiClient = undefined;
+        this.data.imageProvider = undefined;
     }
 
 }

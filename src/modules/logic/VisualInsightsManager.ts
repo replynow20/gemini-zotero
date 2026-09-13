@@ -1,4 +1,5 @@
 import { GeminiClient } from "../gemini/client";
+import type { ImageGenerationProvider } from "../image/types";
 
 export type VisualStyle = 'Schematic' | 'Conceptual' | 'Flowchart';
 
@@ -6,10 +7,15 @@ export type VisualStyle = 'Schematic' | 'Conceptual' | 'Flowchart';
 export type ProgressCallback = (step: string, progress: number) => void;
 
 export class VisualInsightsManager {
-    private client: GeminiClient;
+    private analysisClient: GeminiClient;
+    private imageProvider: ImageGenerationProvider;
 
-    constructor(client: GeminiClient) {
-        this.client = client;
+    constructor(
+        analysisClient: GeminiClient,
+        imageProvider: ImageGenerationProvider = analysisClient,
+    ) {
+        this.analysisClient = analysisClient;
+        this.imageProvider = imageProvider;
     }
 
     /**
@@ -59,7 +65,7 @@ export class VisualInsightsManager {
 
         // analyzePdf handles file upload/caching internally.
         // We pass the schema to force structured JSON output.
-        const response1 = await this.client.analyzePdf(pdfData, promptGenerationPrompt, designSchema);
+        const response1 = await this.analysisClient.analyzePdf(pdfData, promptGenerationPrompt, designSchema);
 
         let manifest: any;
         try {
@@ -84,9 +90,9 @@ export class VisualInsightsManager {
         ztoolkit.log(`[VisualInsights] Final Image Prompt:`, imagePrompt);
 
         // Step 3: Generate the image using the specialized Image model
-        onProgress?.("Generating image with Gemini Image model...", 60);
+        onProgress?.("Generating image...", 60);
 
-        const base64Image = await this.client.generateImage(imagePrompt, {
+        const base64Image = await this.imageProvider.generateImage(imagePrompt, {
             aspectRatio: "16:9",
             imageSize: "2K"
         });
